@@ -35,6 +35,4 @@ for g in os.listdir("3rdparty/GLAD"):
     if (g.endswith(".h") or g.endswith(".c")):
         SrcTemporary = os.path.join(working_dir, "3rdparty/GLAD/" + g)
         DstTemporary = os.path.join(working_dir, "includes/GLAD/" + g)
-#        print(SrcTemporary)
-#        print(DstTemporary)
         shutil.copyfile(SrcTemporary, DstTemporary)        
