@@ -162,6 +162,8 @@ void instructions::RET_00EE(VM* VM)
 {
 	VM->SP--;
 	VM->PC = VM->stack[VM->SP];
+	VM->stack[VM->SP] = 0;
+
 	VM->PC += 2;
 }
 

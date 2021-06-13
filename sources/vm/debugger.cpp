@@ -119,8 +119,9 @@ void Debugger::GetDissassembly()
 
     for (int i = 512; i < 4096; i+=2)
     {
-        snprintf(&tmp[0], 5, "%i", i);
-        snprintf(&tmp2[0], 6, "%02x %02x", vm_ptr->memory[i], vm_ptr->memory[i + 1]);
+        // Use them till c++20
+        snprintf(&tmp[0], tmp.size(), "%i", i);
+        snprintf(&tmp2[0], tmp2.size(), "%02x %02x", vm_ptr->memory[i], vm_ptr->memory[i + 1]);
         insData.push_back({ tmp, tmp2, DecodeInstruction(vm_ptr->memory[i] << 8 | vm_ptr->memory[i + 1]), false });
     }
 }
@@ -142,36 +143,39 @@ void Debugger::GetRegisterInformations()
 
 void Debugger::ApplyChangedInformation()
 {
-
-    for (int i = 0; i < 16; i++)
+    if (Pause == true)
     {
-        if (TemporaryV[i] != vm_ptr->V[i])
-            vm_ptr->V[i] = TemporaryV[i];
-    }
+        for (int i = 0; i < 16; i++)
+        {
+            if (TemporaryV[i] != vm_ptr->V[i])
+                vm_ptr->V[i] = TemporaryV[i];
+        }
 
-    if (TemporaryPC != vm_ptr->PC)
-    {
-        vm_ptr->PC = TemporaryPC;
-    }
+        if (TemporaryPC != vm_ptr->PC)
+        {
+            vm_ptr->PC = TemporaryPC;
+        }
 
-    if (TemporaryI != vm_ptr->I)
-    {
-        vm_ptr->I = TemporaryI;
-    }
+        if (TemporaryI != vm_ptr->I)
+        {
+            vm_ptr->I = TemporaryI;
+        }
 
-    if (TemporaryST != vm_ptr->ST)
-    {
-        vm_ptr->ST = TemporaryST;
-    }
+        if (TemporaryST != vm_ptr->ST)
+        {
+            vm_ptr->ST = TemporaryST;
+        }
 
-    if (TemporaryDT != vm_ptr->DT)
-    {
-        vm_ptr->DT = TemporaryDT;
-    }
+        if (TemporaryDT != vm_ptr->DT)
+        {
+            vm_ptr->DT = TemporaryDT;
+        }
 
-    if (TemporarySP != vm_ptr->SP)
-    {
-        vm_ptr->SP = TemporarySP;
+        if (TemporarySP != vm_ptr->SP)
+        {
+            vm_ptr->SP = TemporarySP;
+        }
+
     }
 
 }
@@ -307,46 +311,34 @@ void Debugger::DrawDissassembly()
         ImGui::TableSetupColumn("Address");
         ImGui::TableSetupColumn("Bytes");
         ImGui::TableSetupColumn("Instruction");
-
-        ImGuiListClipper clipper(insData.size());
       
-      ImGui::TableHeadersRow();
+        ImGui::TableHeadersRow();
+        
+        for (int i = 0; i < insData.size(); i++)
+        {
+            ImGui::TableNextRow();
 
-      while (clipper.Step()) 
-      {
+            if (insData[i].selected)
+            {
+                ImGui::TableSetBgColor(ImGuiTableBgTarget_::ImGuiTableBgTarget_RowBg0, IM_COL32(255, 0, 0, 255));
+            }
 
-          for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)
-          {
+            ImGui::TableNextColumn();
+            ImGui::Selectable(insData[i].address.c_str(), &insData[i].selected, ImGuiSelectableFlags_SpanAllColumns);
 
-              ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::Text(insData[i].bytes.c_str());
 
-              if (insData[i].selected)
-              {
-                  ImGui::TableSetBgColor(ImGuiTableBgTarget_::ImGuiTableBgTarget_RowBg0, IM_COL32(255, 0, 0, 255));
-              }
+            ImGui::TableNextColumn();
+            ImGui::Text(insData[i].decoded_instrucction.c_str());
 
-              ImGui::TableNextColumn();
-              ImGui::Selectable(insData[i].address.c_str(), &insData[i].selected, ImGuiSelectableFlags_SpanAllColumns);
+            if (vm_ptr->PC == std::stoi(insData[i].address) && Pause == true)
+            {
+                ImGui::TableSetBgColor(ImGuiTableBgTarget_::ImGuiTableBgTarget_RowBg0, IM_COL32(50, 205, 50, 255));
+            }
+        }
 
-              ImGui::TableNextColumn();
-              ImGui::Text(insData[i].bytes.c_str());
-
-              ImGui::TableNextColumn();
-              ImGui::Text(insData[i].decoded_instrucction.c_str());
-
-              if (vm_ptr->PC == std::stoi(insData[i].address))
-              {
-                  ImGui::TableSetBgColor(ImGuiTableBgTarget_::ImGuiTableBgTarget_RowBg0, IM_COL32(50, 205, 50, 255));
-              }
-
-          }
-
-      }
-
-      clipper.End();
-
- 
-     ImGui::EndTable();
+        ImGui::EndTable();
     }
 }
 

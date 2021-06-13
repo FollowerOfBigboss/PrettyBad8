@@ -10,17 +10,13 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/io.hpp>
 
-
 #include "vm/vm.h"
 #include "vm/draw.h"
 #include "vm/ui.h"
 #include "vm/debugger.h"
 
-
 #include <iostream>
-#include <vector>
-#include <chrono>
-#include <thread>
+
 
 void glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void glfwResizeCallback(GLFWwindow* window, int width, int height);
@@ -130,6 +126,9 @@ void glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int 
 {
     if (action == GLFW_PRESS)
     {
+        if (key == GLFW_KEY_F10)
+            EmuUi::ShouldDrawMenuBar = !EmuUi::ShouldDrawMenuBar;
+
         for (int i = 0; i < 16; i++)
         {
             if (key == KeyMap[i])
