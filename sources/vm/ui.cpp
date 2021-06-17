@@ -10,6 +10,8 @@ namespace EmuUi
 	bool ShowStackView = false;
 	bool ShowKeyView = false;
 	bool ShouldDrawMenuBar = true;
+
+	bool DrawFile = false;
 }
 
 
@@ -23,11 +25,7 @@ void EmuUi::DrawMenuBar()
 			// https://github.com/aiekick/ImGuiFileDialog
 			if (ImGui::BeginMenu("File"))
 			{
-				if (ImGui::MenuItem("Open"))
-				{
-
-				}
-
+				ImGui::MenuItem("Open", 0, &DrawFile);
 				ImGui::EndMenu();
 			}
 
@@ -80,6 +78,23 @@ void EmuUi::DrawDebuggerStuf()
 		EDebugger.ApplyChangedInformation();
 		ImGui::End();
 	}
+
+	if (DrawFile)
+	{
+		ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Choose File", ".ch8,.*", ".");
+	}
+
+	if (ImGuiFileDialog::Instance()->Display("ChooseFileDlgKey"))
+	{
+		if (ImGuiFileDialog::Instance()->IsOk())
+		{
+			std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+			std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
+		}
+
+		ImGuiFileDialog::Instance()->Close();
+	}
+
 }
 
 void EmuUi::EmuLoop()

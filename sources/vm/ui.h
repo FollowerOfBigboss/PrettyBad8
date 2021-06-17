@@ -1,4 +1,5 @@
 #include "imgui/imgui.h"
+#include "imgui/ImGuiFileDialog.h"
 
 #include "debugger.h"
 
@@ -11,8 +12,9 @@ namespace EmuUi
 	extern bool ShowGraphicsDebugger;
 	extern bool ShowStackView;
 	extern bool ShowKeyView;
-
 	extern bool ShouldDrawMenuBar;
+
+	extern bool DrawFile;
 
 	void DrawMenuBar();
 	void DrawDebuggerStuf();

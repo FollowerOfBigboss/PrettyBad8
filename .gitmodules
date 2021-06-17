@@ -7,3 +7,7 @@
 [submodule "3rdparty/glm"]
 	path = 3rdparty/glm
 	url = https://github.com/g-truc/glm
+[submodule "3rdparty/ImGuiFileDialog"]
+	path = 3rdparty/ImGuiFileDialog
+	url = https://github.com/aiekick/ImGuiFileDialog
+	branch = Lib_Only
