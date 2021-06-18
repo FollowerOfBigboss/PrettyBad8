@@ -112,17 +112,47 @@ void Debugger::RunUntilBreakpoint()
 
 void Debugger::GetDissassembly()
 {
+    if (insData.size() > 0)
+    {
+        for (int i = 0; i < insData.size(); i++)
+        {
+            insData[i].address = "";
+            insData[i].bytes = "";
+            insData[i].decoded_instrucction = "";
+        }
+    }
+
     std::string tmp;
     std::string tmp2;
     tmp.resize(5);
     tmp2.resize(20);
 
-    for (int i = 512; i < 4096; i+=2)
+    int ac = 0;
+
+    if (insData.size() == 0)
     {
-        // Use them till c++20
-        snprintf(&tmp[0], tmp.size(), "%i", i);
-        snprintf(&tmp2[0], tmp2.size(), "%02x %02x", vm_ptr->memory[i], vm_ptr->memory[i + 1]);
-        insData.push_back({ tmp, tmp2, DecodeInstruction(vm_ptr->memory[i] << 8 | vm_ptr->memory[i + 1]), false });
+        for (int i = 512; i < 4096; i += 2)
+        {
+            // Use them till c++20
+            snprintf(&tmp[0], tmp.size(), "%i", i);
+            snprintf(&tmp2[0], tmp2.size(), "%02x %02x", vm_ptr->memory[i], vm_ptr->memory[i + 1]);
+            insData.push_back({ tmp, tmp2, DecodeInstruction(vm_ptr->memory[i] << 8 | vm_ptr->memory[i + 1]), false });
+        }
+
+    }
+    else
+    {
+        for (int i = 512; i < 4096; i += 2)
+        {
+            snprintf(&tmp[0], tmp.size(), "%i", i);
+            snprintf(&tmp2[0], tmp2.size(), "%02x %02x", vm_ptr->memory[i], vm_ptr->memory[i + 1]);
+            insData[ac].address = tmp;
+            insData[ac].bytes = tmp2;
+            insData[ac].decoded_instrucction = DecodeInstruction(vm_ptr->memory[i] << 8 | vm_ptr->memory[i + 1]);
+            ac++;
+
+        }
+
     }
 }
 
@@ -261,7 +291,7 @@ void Debugger::DrawRegisters()
         ImGui::Text("V%i", i);
         ImGui::SameLine();
         ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.15f);
-        ImGui::InputInt(templabelsV[i], &TemporaryV[i]);
+        ImGui::InputInt(templabelsV[i], &TemporaryV[i], 0);
         
         if ( !((i + 1) % 4 == 0) )
         {
@@ -273,37 +303,38 @@ void Debugger::DrawRegisters()
     ImGui::Text("PC");
     ImGui::SameLine();
     ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.15f);
-    ImGui::InputInt("##TemporaryPC", &TemporaryPC);
+    ImGui::InputInt("##TemporaryPC", &TemporaryPC, 0);
 
     ImGui::SameLine();
 
     ImGui::Text("I");
     ImGui::SameLine();
     ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.15f);
-    ImGui::InputInt("##TemporaryI", &TemporaryI);
+    ImGui::InputInt("##TemporaryI", &TemporaryI, 0);
 
     ImGui::SameLine();
 
     ImGui::Text("ST");
     ImGui::SameLine();
     ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.15f);
-    ImGui::InputInt("##TemporaryST", &TemporaryST);
+    ImGui::InputInt("##TemporaryST", &TemporaryST, 0);
 
     ImGui::SameLine();
 
     ImGui::Text("DT");
     ImGui::SameLine();
     ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.15f);
-    ImGui::InputInt("##TemporaryDT", &TemporaryDT);
+    ImGui::InputInt("##TemporaryDT", &TemporaryDT, 0);
 
     ImGui::Text("SP");
     ImGui::SameLine();
     ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.15f);
-    ImGui::InputInt("##TemporarySP", &TemporarySP);
+    ImGui::InputInt("##TemporarySP", &TemporarySP, 0);
 }
 
 void Debugger::DrawDissassembly()
 {
+    GetDissassembly();
     
     if (ImGui::BeginTable("##disassembly", 3, ImGuiTableFlags_Resizable | ImGuiTableFlags_RowBg| ImGuiTableFlags_ScrollY ))
     {

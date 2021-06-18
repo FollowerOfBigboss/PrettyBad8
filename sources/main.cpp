@@ -50,7 +50,9 @@ int main()
 {
     GLFWwindow* window;
     if (!glfwInit())
+    {
         return -1;
+    }
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -81,12 +83,6 @@ int main()
 
     CDQuads drquads;
 
-    EmuUi::vm.init();
-    EmuUi::vm.loadrom("pong");
-
-    EmuUi::EDebugger.attach(EmuUi::vm);
-    EmuUi::EDebugger.GetDissassembly();
-
     while (!glfwWindowShouldClose(window))
     {
         glfwPollEvents();
@@ -100,11 +96,10 @@ int main()
 
 
         EmuUi::DrawMenuBar();
-        EmuUi::DrawDebuggerStuf();
-        
+        EmuUi::DrawDebuggerStuf();        
         EmuUi::EmuLoop();
 
-        ImGui::ShowDemoWindow();
+//        ImGui::ShowDemoWindow();
         
         drquads.update(EmuUi::vm);
         ImGui::Render();

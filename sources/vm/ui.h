@@ -15,6 +15,7 @@ namespace EmuUi
 	extern bool ShouldDrawMenuBar;
 
 	extern bool DrawFile;
+	extern bool RomLoaded;
 
 	void DrawMenuBar();
 	void DrawDebuggerStuf();

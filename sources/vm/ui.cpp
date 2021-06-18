@@ -10,7 +10,7 @@ namespace EmuUi
 	bool ShowStackView = false;
 	bool ShowKeyView = false;
 	bool ShouldDrawMenuBar = true;
-
+	bool RomLoaded = false;
 	bool DrawFile = false;
 }
 
@@ -22,7 +22,6 @@ void EmuUi::DrawMenuBar()
 
 		if (ImGui::BeginMainMenuBar())
 		{
-			// https://github.com/aiekick/ImGuiFileDialog
 			if (ImGui::BeginMenu("File"))
 			{
 				ImGui::MenuItem("Open", 0, &DrawFile);
@@ -31,11 +30,21 @@ void EmuUi::DrawMenuBar()
 
 			if (ImGui::BeginMenu("Debug"))
 			{
+				if (RomLoaded == true)
+				{
+					ImGui::MenuItem("Debugger", 0, &ShowDebugger);
+					ImGui::MenuItem("Graphics Debugger", 0, &ShowGraphicsDebugger);
+					ImGui::MenuItem("Stack View", 0, &ShowStackView);
+					ImGui::MenuItem("Key View", 0, &ShowKeyView);
+				}
+				else
+				{
+					ImGui::MenuItem("Debugger", 0);
+					ImGui::MenuItem("Graphics Debugger", 0);
+					ImGui::MenuItem("Stack View", 0);
+					ImGui::MenuItem("Key View", 0);
+				}
 
-				ImGui::MenuItem("Debugger", 0, &ShowDebugger);
-				ImGui::MenuItem("Graphics Debugger", 0, &ShowGraphicsDebugger);
-				ImGui::MenuItem("Stack View", 0, &ShowStackView);
-				ImGui::MenuItem("Key View", 0, &ShowKeyView);
 
 				ImGui::EndMenu();
 			}
@@ -78,38 +87,47 @@ void EmuUi::DrawDebuggerStuf()
 		EDebugger.ApplyChangedInformation();
 		ImGui::End();
 	}
-
-	if (DrawFile)
-	{
-		ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Choose File", ".ch8,.*", ".");
-	}
-
-	if (ImGuiFileDialog::Instance()->Display("ChooseFileDlgKey"))
-	{
-		if (ImGuiFileDialog::Instance()->IsOk())
-		{
-			std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
-			std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
-		}
-
-		ImGuiFileDialog::Instance()->Close();
-	}
-
 }
 
 void EmuUi::EmuLoop()
 {
-	if (ShowDebugger == true)
+
+	if (DrawFile)
 	{
-		EDebugger.RunUntilBreakpoint();
+		ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Choose File", ".ch8,.*", ".");
+		
+		if (ImGuiFileDialog::Instance()->Display("ChooseFileDlgKey"))
+		{
+			if (ImGuiFileDialog::Instance()->IsOk())
+			{
+				std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+
+				vm.init();
+				vm.loadrom(filePathName);
+
+				EDebugger.attach(vm);
+				RomLoaded = true;
+			}
+
+			ImGuiFileDialog::Instance()->Close();
+			DrawFile = false;
+		}
 	}
 
-	else
+
+	if (RomLoaded)
 	{
-		int a = hztocycles(500);
-		for (int i = 0; i < a; i++)
+		if (ShowDebugger == true)
 		{
-			vm.cycle();
+			EDebugger.RunUntilBreakpoint();
+		}
+		else
+		{
+			int a = hztocycles(500);
+			for (int i = 0; i < a; i++)
+			{
+				vm.cycle();
+			}
 		}
 	}
 }
