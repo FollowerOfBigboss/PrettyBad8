@@ -5,7 +5,9 @@ namespace EmuUi
 	Debugger EDebugger;
 	VM vm;
 
-	bool ShowDebugger = false;
+	CRenderQuads drquads;
+
+	bool ShowCpuDebugger = false;
 	bool ShowGraphicsDebugger = false;
 	bool ShowStackView = false;
 	bool ShowKeyView = false;
@@ -14,6 +16,12 @@ namespace EmuUi
 	bool DrawFile = false;
 }
 
+
+void EmuUi::Init()
+{
+	drquads.init();
+	EDebugger.attach(vm);
+}
 
 void EmuUi::DrawMenuBar()
 {
@@ -25,27 +33,33 @@ void EmuUi::DrawMenuBar()
 			if (ImGui::BeginMenu("File"))
 			{
 				ImGui::MenuItem("Open", 0, &DrawFile);
+
+				if (ImGui::MenuItem("Close", 0))
+				{
+					
+					if (RomLoaded == true)
+					{
+						RomLoaded = false;
+						vm.reset();
+					}
+
+				}
+
+				ImGui::EndMenu();
+			}
+
+
+			if (ImGui::BeginMenu("Settings"))
+			{
 				ImGui::EndMenu();
 			}
 
 			if (ImGui::BeginMenu("Debug"))
 			{
-				if (RomLoaded == true)
-				{
-					ImGui::MenuItem("Debugger", 0, &ShowDebugger);
-					ImGui::MenuItem("Graphics Debugger", 0, &ShowGraphicsDebugger);
-					ImGui::MenuItem("Stack View", 0, &ShowStackView);
-					ImGui::MenuItem("Key View", 0, &ShowKeyView);
-				}
-				else
-				{
-					ImGui::MenuItem("Debugger", 0);
-					ImGui::MenuItem("Graphics Debugger", 0);
-					ImGui::MenuItem("Stack View", 0);
-					ImGui::MenuItem("Key View", 0);
-				}
-
-
+				ImGui::MenuItem("Debugger", 0, &ShowCpuDebugger);
+				ImGui::MenuItem("Graphics Debugger", 0, &ShowGraphicsDebugger);
+				ImGui::MenuItem("Stack View", 0, &ShowStackView);
+				ImGui::MenuItem("Key View", 0, &ShowKeyView);
 				ImGui::EndMenu();
 			}
 
@@ -77,12 +91,13 @@ void EmuUi::DrawDebuggerStuf()
 	}
 
 
-	if (ShowDebugger)
+	if (ShowCpuDebugger)
 	{
 		ImGui::Begin("Debugger");
 		EDebugger.HandleAndDrawDebuggerInput();
 		EDebugger.GetRegisterInformations();
 		EDebugger.DrawRegisters();
+
 		EDebugger.DrawDissassembly();
 		EDebugger.ApplyChangedInformation();
 		ImGui::End();
@@ -91,11 +106,25 @@ void EmuUi::DrawDebuggerStuf()
 
 void EmuUi::EmuLoop()
 {
+	if (RomLoaded)
+	{
+		if (ShowCpuDebugger == true && RomLoaded == true)
+		{
+			EDebugger.RunUntilBreakpoint();
+		}
+		else
+		{
+			vm.run(500);
+		}
+	}
+}
 
+void EmuUi::EmuDraw()
+{
 	if (DrawFile)
 	{
 		ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Choose File", ".ch8,.*", ".");
-		
+
 		if (ImGuiFileDialog::Instance()->Display("ChooseFileDlgKey"))
 		{
 			if (ImGuiFileDialog::Instance()->IsOk())
@@ -104,8 +133,6 @@ void EmuUi::EmuLoop()
 
 				vm.init();
 				vm.loadrom(filePathName);
-
-				EDebugger.attach(vm);
 				RomLoaded = true;
 			}
 
@@ -114,20 +141,9 @@ void EmuUi::EmuLoop()
 		}
 	}
 
+	DrawMenuBar();
+	DrawDebuggerStuf();
 
-	if (RomLoaded)
-	{
-		if (ShowDebugger == true)
-		{
-			EDebugger.RunUntilBreakpoint();
-		}
-		else
-		{
-			int a = hztocycles(500);
-			for (int i = 0; i < a; i++)
-			{
-				vm.cycle();
-			}
-		}
-	}
+	EmuLoop();
+	drquads.update(EmuUi::vm);
 }

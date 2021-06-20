@@ -1,5 +1,4 @@
 #include "debugger.h"
-#include "imgui/imgui_internal.h"
 
 
 void Debugger::attach(VM& vmInfo)
@@ -250,7 +249,7 @@ void Debugger::HandleAndDrawDebuggerInput()
     if (ImGui::Button("Reset"))
     {
         Pause = StopAfterReset;
-        vm_ptr->reset();
+        vm_ptr->reset_and_loadrom();
     }
 
     ImGui::SameLine();
@@ -463,7 +462,7 @@ void Debugger::DrawKey()
 
 std::string Debugger::DecodeInstruction(uint16_t opcode)
 {
-    std::string decoded = "Unknown";
+    std::string decoded = "??";
     decoded.resize(20);
 
     switch (opcode & 0xF000)

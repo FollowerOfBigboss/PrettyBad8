@@ -33,6 +33,10 @@ public:
 	bool loadrom(const std::string& rompath);
 	void cycle();
 	void reset();
+	void reset_and_loadrom();
+
+	void run(int freq);
+	void shutdown();
 
 	uint8_t V[16];
 	uint16_t I;
@@ -46,8 +50,7 @@ public:
 	uint8_t gfx[64 * 32];
 	uint16_t opcode;
 
-	bool Draw = false;
-	std::string lrom;
+	std::string LastLoadedRomPath;
 };
 
 

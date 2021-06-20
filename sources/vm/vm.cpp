@@ -2,24 +2,12 @@
 
 void VM::init()
 {
-	memset(this->V, 0, sizeof(this->V));
-	memset(this->Key, 0, sizeof(this->Key));
-	memset(this->memory, 0, sizeof(this->memory));
-	memset(this->stack, 0, sizeof(this->stack));
-	memset(this->gfx, 0, sizeof(this->gfx));
-
-	this->I = 0;
-	this->ST = 0;
-	this->DT = 0;
-	this->PC = 0x200; // 512
-	this->SP = 0;
-
-	memcpy(this->memory, &vm_font, sizeof(vm_font));
+	this->reset();
 }
 
 bool VM::loadrom(const std::string& rompath)
 {
-	lrom = rompath;
+	LastLoadedRomPath = rompath;
 
 	FILE* rom;
 	rom = fopen(rompath.c_str(), "rb");
@@ -144,7 +132,27 @@ void VM::reset()
 	this->SP = 0;
 
 	memcpy(this->memory, &vm_font, sizeof(vm_font));
-	loadrom(lrom);
+//	loadrom(lrom);
+}
+
+void VM::reset_and_loadrom()
+{
+	this->reset();
+	this->loadrom(LastLoadedRomPath);
+}
+
+void VM::run(int freq)
+{
+	int a = hztocycles(freq);
+	for (int i = 0; i < a; i++)
+	{
+		this->cycle();
+	}
+}
+
+void VM::shutdown()
+{
+	this->reset();
 }
 
 
@@ -409,7 +417,6 @@ void instructions::DRW_D000(VM* VM)
 	}
 
 	VM->PC += 2;
-	VM->Draw = true;
 }
 
 // Ex9E - SKP Vx

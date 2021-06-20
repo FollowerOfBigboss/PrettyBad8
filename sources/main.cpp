@@ -5,18 +5,10 @@
 #include <imgui/imgui_impl_glfw.h>
 #include <imgui/imgui_impl_opengl3.h>
 
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <glm/gtx/io.hpp>
-
 #include "vm/vm.h"
-#include "vm/draw.h"
 #include "vm/ui.h"
-#include "vm/debugger.h"
 
 #include <iostream>
-
 
 void glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void glfwResizeCallback(GLFWwindow* window, int width, int height);
@@ -43,8 +35,6 @@ int KeyMap[16] =
     GLFW_KEY_C,
     GLFW_KEY_V
 };
-
-VM VM_CHIP;
 
 int main()
 {
@@ -77,11 +67,10 @@ int main()
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     
     ImGui::StyleColorsDark();
- 
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init();
-
-    CDQuads drquads;
+    
+    EmuUi::Init();
 
     while (!glfwWindowShouldClose(window))
     {
@@ -94,22 +83,14 @@ int main()
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-
-        EmuUi::DrawMenuBar();
-        EmuUi::DrawDebuggerStuf();        
-        EmuUi::EmuLoop();
-
+        EmuUi::EmuDraw();
 //        ImGui::ShowDemoWindow();
-        
-        drquads.update(EmuUi::vm);
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-        
         glfwSwapBuffers(window);
 
     }
 
-    EmuUi::EDebugger.deattach();
     glfwTerminate();
     return 0;
 

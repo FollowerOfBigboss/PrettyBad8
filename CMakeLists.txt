@@ -40,45 +40,45 @@ file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/ImGuiFileDialog/dirent
 
 
 add_executable(EmuPBad8 
-			   sources/main.cpp
-			   sources/vm/debugger.cpp
-			   sources/vm/debugger.h
-			   sources/vm/draw.h
-			   sources/vm/ui.h
-			   sources/vm/ui.cpp
-			   sources/vm/vm.cpp
-			   sources/vm/vm.h
-			   )
+	       sources/main.cpp
+	       sources/vm/debugger.cpp
+	       sources/vm/debugger.h
+	       sources/vm/draw.h
+	       sources/vm/draw.cpp
+	       sources/vm/ui.h
+	       sources/vm/ui.cpp
+	       sources/vm/vm.cpp
+	       sources/vm/vm.h
+)
 
 add_library(GLAD
-			3rdparty/GLAD/khrplatform.h
-			3rdparty/GLAD/glad.h 
-			3rdparty/GLAD/glad.c
-			)
+	    3rdparty/GLAD/khrplatform.h
+	    3rdparty/GLAD/glad.h 
+	    3rdparty/GLAD/glad.c
+)
 
 
 add_library(Dear_ImGui
-			3rdparty/imgui/imconfig.h
-			3rdparty/imgui/imgui.cpp
-			3rdparty/imgui/imgui.h
-			3rdparty/imgui/imgui_demo.cpp
-			3rdparty/imgui/imgui_draw.cpp
-			3rdparty/imgui/imgui_impl_glfw.cpp
-			3rdparty/imgui/imgui_impl_glfw.h
-			3rdparty/imgui/imgui_impl_opengl3.cpp
-			3rdparty/imgui/imgui_impl_opengl3.h
-			3rdparty/imgui/imgui_internal.h
-			3rdparty/imgui/imgui_tables.cpp
-			3rdparty/imgui/imgui_widgets.cpp
-			3rdparty/imgui/imstb_rectpack.h
-			3rdparty/imgui/imstb_textedit.h
-			3rdparty/imgui/imstb_truetype.h
+	    3rdparty/imgui/imconfig.h
+	    3rdparty/imgui/imgui.cpp
+	    3rdparty/imgui/imgui.h
+	    3rdparty/imgui/imgui_demo.cpp
+	    3rdparty/imgui/imgui_draw.cpp
+	    3rdparty/imgui/imgui_impl_glfw.cpp
+	    3rdparty/imgui/imgui_impl_glfw.h
+	    3rdparty/imgui/imgui_impl_opengl3.cpp
+	    3rdparty/imgui/imgui_impl_opengl3.h
+	    3rdparty/imgui/imgui_internal.h
+	    3rdparty/imgui/imgui_tables.cpp
+	    3rdparty/imgui/imgui_widgets.cpp
+	    3rdparty/imgui/imstb_rectpack.h
+	    3rdparty/imgui/imstb_textedit.h
+	    3rdparty/imgui/imstb_truetype.h
 			
 # ImGuiFileDialog			
-			3rdparty/imgui/ImGuiFileDialog.h
- 			3rdparty/imgui/ImGuiFileDialog.cpp
- 			3rdparty/imgui/dirent/dirent.h
-			
+	    3rdparty/imgui/ImGuiFileDialog.h
+ 	    3rdparty/imgui/ImGuiFileDialog.cpp
+ 	    3rdparty/imgui/dirent/dirent.h			
 )
 
 
