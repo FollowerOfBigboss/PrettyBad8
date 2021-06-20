@@ -24,19 +24,28 @@ private:
     GLuint vshader;
     GLuint fshader;
 
-    const char* vsh = 
-        "#version 330\n"
-        "layout (location = 0) in vec3 aPos;"
-        "layout(location = 1) in vec3 vcolour;"
-        "out vec3 Vcolor;"
-        "uniform mat4 projection;"
-        "void main() { gl_Position = projection * vec4(aPos, 1.0); Vcolor = vcolour;}\0";
+    const char* VertexShader = R"(
+                        #version 330
+                        layout (location = 0) in vec3 aPos;
+                        layout(location = 1) in vec3 vcolour;
+                        out vec3 Vcolor;
+                        uniform mat4 projection;
+                        void main()
+                        {
+                            gl_Position = projection * vec4(aPos, 1.0); 
+                            Vcolor = vcolour;
+                        }
+                        )";
 
-    const char* fsh = 
-        "#version 330 core\n"
-        "in vec3 Vcolor;"
-        "out vec4 FragColor;\n"
-        "void main() { FragColor = vec4(Vcolor, 0.0f); }\0";
+    const char* FragmentShader = R"(
+                        #version 330 core
+                        in vec3 Vcolor;
+                        out vec4 FragColor;
+                        void main() 
+                        { 
+                            FragColor = vec4(Vcolor, 0.0f); 
+                        }
+                        )";
 
     const GLfloat vertices[12] = {
         0.0f, 0.0f, 1.0f,
@@ -52,7 +61,6 @@ private:
     
     GLuint VBO, VAO;
     GLuint colours_vbo;
-
 };
 
 #endif

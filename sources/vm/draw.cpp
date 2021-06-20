@@ -3,11 +3,11 @@
 void CRenderQuads::init()
 {
     GLuint vshader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vshader, 1, &vsh, 0);
+    glShaderSource(vshader, 1, &VertexShader, 0);
     glCompileShader(vshader);
 
     GLuint fshader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fshader, 1, &fsh, 0);
+    glShaderSource(fshader, 1, &FragmentShader, 0);
     glCompileShader(fshader);
 
     GLuint gprogram = glCreateProgram();
