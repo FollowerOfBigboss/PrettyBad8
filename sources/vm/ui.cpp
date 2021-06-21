@@ -3,6 +3,7 @@
 namespace EmuUi
 {
 	Debugger EDebugger;
+	DebuggerUi DbgUi;
 	VM vm;
 
 	CRenderQuads drquads;
@@ -20,7 +21,8 @@ namespace EmuUi
 void EmuUi::Init()
 {
 	drquads.init();
-	EDebugger.attach(vm);
+	EDebugger.attach(&vm);
+	DbgUi.attach(&EDebugger);
 }
 
 void EmuUi::DrawMenuBar()
@@ -54,14 +56,14 @@ void EmuUi::DrawMenuBar()
 				ImGui::EndMenu();
 			}
 
-			if (ImGui::BeginMenu("Debug"))
-			{
-				ImGui::MenuItem("Debugger", 0, &ShowCpuDebugger);
-				ImGui::MenuItem("Graphics Debugger", 0, &ShowGraphicsDebugger);
-				ImGui::MenuItem("Stack View", 0, &ShowStackView);
-				ImGui::MenuItem("Key View", 0, &ShowKeyView);
-				ImGui::EndMenu();
-			}
+// 			if (ImGui::BeginMenu("Debug"))
+// 			{
+// 				ImGui::MenuItem("Debugger", 0, &ShowCpuDebugger);
+// 				ImGui::MenuItem("Graphics Debugger", 0, &ShowGraphicsDebugger);
+// 				ImGui::MenuItem("Stack View", 0, &ShowStackView);
+// 				ImGui::MenuItem("Key View", 0, &ShowKeyView);
+// 				ImGui::EndMenu();
+// 			}
 
 
 			ImGui::EndMainMenuBar();
@@ -73,49 +75,53 @@ void EmuUi::DrawMenuBar()
 
 void EmuUi::DrawDebuggerStuf()
 {
-	if (ShowGraphicsDebugger)
-	{
-		EDebugger.DrawGraphicsDebugger();
-	}
+// 	if (ShowGraphicsDebugger)
+//	{
+//		EDebugger.DrawGraphicsDebugger();
+//	}
+// 
+// 	if (ShowStackView)
+// 	{
+// 		EDebugger.GetStackInformation();
+// 		EDebugger.DrawStack();
+// 	}
+// 
+// 	if (ShowKeyView)
+//	{
+//		EDebugger.GetKeyInformation();
+//		EDebugger.DrawKey();
+//	}
+// 
+// 
+// 	if (ShowCpuDebugger)
+// 	{
+// 		ImGui::Begin("Debugger");
+// 		EDebugger.HandleAndDrawDebuggerInput();
+// 		EDebugger.GetRegisterInformations();
+// 		EDebugger.DrawRegisters();
+// 
+// 		EDebugger.DrawDissassembly();
+// 		EDebugger.ApplyChangedInformation();
+// 		ImGui::End();
+// 	}
 
-	if (ShowStackView)
-	{
-		EDebugger.GetStackInformation();
-		EDebugger.DrawStack();
-	}
-
-	if (ShowKeyView)
-	{
-		EDebugger.GetKeyInformation();
-		EDebugger.DrawKey();
-	}
-
-
-	if (ShowCpuDebugger)
-	{
-		ImGui::Begin("Debugger");
-		EDebugger.HandleAndDrawDebuggerInput();
-		EDebugger.GetRegisterInformations();
-		EDebugger.DrawRegisters();
-
-		EDebugger.DrawDissassembly();
-		EDebugger.ApplyChangedInformation();
-		ImGui::End();
-	}
+	DbgUi.draw();
 }
 
 void EmuUi::EmuLoop()
 {
 	if (RomLoaded)
 	{
-		if (ShowCpuDebugger == true && RomLoaded == true)
-		{
-			EDebugger.RunUntilBreakpoint();
-		}
-		else
-		{
-			vm.run(500);
-		}
+		EDebugger.run();
+	// 	// if (ShowCpuDebugger == true && RomLoaded == true)
+	// 	if (RomLoaded == true)
+	// 	{
+	// 		EDebugger.run();
+	// 	}
+	// 	else
+	// 	{
+	// 		vm.run(500);
+	// 	}
 	}
 }
 
@@ -134,6 +140,7 @@ void EmuUi::EmuDraw()
 				vm.init();
 				vm.loadrom(filePathName);
 				RomLoaded = true;
+				EDebugger.set_status(DebuggerStatus::debugger_running);
 			}
 
 			ImGuiFileDialog::Instance()->Close();

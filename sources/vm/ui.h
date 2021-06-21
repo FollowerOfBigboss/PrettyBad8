@@ -1,11 +1,15 @@
 #include "imgui/imgui.h"
 #include "imgui/ImGuiFileDialog.h"
 
-#include "debugger.h"
+// #include "debugger.h"
+
+#include "debugger_n.h"
+#include "../gui/debugger_ui.h"
 #include "draw.h"
 
 namespace EmuUi
 {
+	extern DebuggerUi DbgUi;
 	extern Debugger EDebugger;
 	extern VM vm;
 

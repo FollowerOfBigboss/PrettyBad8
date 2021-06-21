@@ -84,7 +84,7 @@ int main()
         ImGui::NewFrame();
 
         EmuUi::EmuDraw();
-//        ImGui::ShowDemoWindow();
+        ImGui::ShowDemoWindow();
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         glfwSwapBuffers(window);
