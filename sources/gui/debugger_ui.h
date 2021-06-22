@@ -16,6 +16,12 @@ public:
 
 	void draw()
 	{
+		for (int i = 0; i < 16; i++)
+		{
+			TV[i] = debugger->get_value_of_register(i);
+		}
+
+
 		ImGui::Begin("New Debugger");
 
 		ImGui::InputInt("##addr", &tmp, 0);	
@@ -49,6 +55,9 @@ public:
 
 		DebuggerStatus();
 		BreakPointList();
+		Registers();
+		Buttons();
+
 	}
 
 
@@ -62,19 +71,19 @@ public:
 		{
 
 			case DebuggerStatus::debugger_running:
-				ColorVec =ImVec4(0.678, 1.000, 0.184, 1);  
+				ColorVec = ImVec4(0.678f, 1.000f, 0.184f, 1.0f);  
 				break;
 			
 			case DebuggerStatus::debugger_pause: 
-				ColorVec = ImVec4(1.000, 1.000, 1.000, 1); 
+				ColorVec = ImVec4(1.000f, 1.000f, 1.000f, 1.0f); 
 				break;
 			
 			case DebuggerStatus::debugger_breakpoint_hit: 
-				ColorVec = ImVec4(1.000, 0.000, 0.000, 1); 
+				ColorVec = ImVec4(1.000f, 0.000f, 0.000f, 1.0f); 
 				break;
 			
-			case DebuggerStatus::debugger_not_active: 
-				ColorVec = ImVec4(1.000, 1.000, 0.000, 1); 
+			case DebuggerStatus::debugger_not_running: 
+				ColorVec = ImVec4(1.000f, 1.000f, 0.000f, 1.0f); 
 				break;
 		}
 
@@ -96,7 +105,6 @@ public:
 					current_item = n;
 				}
 
-				// Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
 				if (is_selected)
 				{
 					ImGui::SetItemDefaultFocus();
@@ -108,10 +116,48 @@ public:
 		ImGui::End();
 	}
 
+	void Registers()
+	{
+		ImGui::Begin("##Registers");
+
+		for (int i = 0; i < 16; i++)
+		{
+			ImGui::Text("V%i", i);
+			ImGui::InputInt("##V", &TV[i]);
+		}
+
+		ImGui::End();
+	}
+
+	void Buttons()
+	{
+		ImGui::Begin("##Buttons");
+
+		if (ImGui::Button("Single Step"))
+		{
+			if (debugger->debugger_status != DebuggerStatus::debugger_running)
+			{
+				debugger->SingleStep();
+			}
+		}
+
+		if (ImGui::Button("Step Into"))
+		{
+			if (debugger->debugger_status != DebuggerStatus::debugger_running)
+			{
+				debugger->StepInto();
+			}
+
+		}
+
+		ImGui::End();
+	}
+
 private:
 	Debugger* debugger;
 	int current_item = 0;
+	int TV[16];
 };
 
-#endif // !DBGUI
+#endif
 

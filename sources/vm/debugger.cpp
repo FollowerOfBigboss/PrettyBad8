@@ -1,12 +1,12 @@
 #include "debugger.h"
 
 
-void Debugger::attach(VM& vmInfo)
+void DebuggerO::attach(VM& vmInfo)
 {
     vm_ptr = &vmInfo;
 }
 
-void Debugger::deattach()
+void DebuggerO::deattach()
 {
     vm_ptr = nullptr;
 
@@ -28,7 +28,7 @@ void Debugger::deattach()
     StopAfterReset = false;
 }
 
-void Debugger::SingleStep()
+void DebuggerO::SingleStep()
 {
     bool IsItCallOpcode = (((vm_ptr->memory[vm_ptr->PC] << 8 | vm_ptr->memory[vm_ptr->PC + 1]) & 0xF000) == 0x2000);
 
@@ -64,12 +64,12 @@ void Debugger::SingleStep()
     vm_ptr->cycle();
 }
 
-void Debugger::StepInto()
+void DebuggerO::StepInto()
 {
     vm_ptr->cycle();
 }
 
-void Debugger::RunUntilBreakpoint()
+void DebuggerO::RunUntilBreakpoint()
 {
     if (Pause == false)
     {
@@ -109,7 +109,7 @@ void Debugger::RunUntilBreakpoint()
     }
 }
 
-void Debugger::GetDissassembly()
+void DebuggerO::GetDissassembly()
 {
     if (insData.size() > 0)
     {
@@ -155,7 +155,7 @@ void Debugger::GetDissassembly()
     }
 }
 
-void Debugger::GetRegisterInformations()
+void DebuggerO::GetRegisterInformations()
 {
     for (int i = 0; i < 16; i++)
     {
@@ -170,7 +170,7 @@ void Debugger::GetRegisterInformations()
 
 }
 
-void Debugger::ApplyChangedInformation()
+void DebuggerO::ApplyChangedInformation()
 {
     if (Pause == true)
     {
@@ -209,7 +209,7 @@ void Debugger::ApplyChangedInformation()
 
 }
 
-void Debugger::GetKeyInformation()
+void DebuggerO::GetKeyInformation()
 {
     if (Pause == false)
     {
@@ -220,7 +220,7 @@ void Debugger::GetKeyInformation()
     }
 }
 
-void Debugger::GetStackInformation()
+void DebuggerO::GetStackInformation()
 {
     for (int j = 0; j < 16; j++)
     {
@@ -228,7 +228,7 @@ void Debugger::GetStackInformation()
     }
 }
 
-void Debugger::HandleAndDrawDebuggerInput()
+void DebuggerO::HandleAndDrawDebuggerInput()
 {
     if (ImGui::Button("Resume"))
     {
@@ -283,7 +283,7 @@ void Debugger::HandleAndDrawDebuggerInput()
 
 }
 
-void Debugger::DrawRegisters()
+void DebuggerO::DrawRegisters()
 {
     for (int i = 0; i < 16; i++)
     {
@@ -331,7 +331,7 @@ void Debugger::DrawRegisters()
     ImGui::InputInt("##TemporarySP", &TemporarySP, 0);
 }
 
-void Debugger::DrawDissassembly()
+void DebuggerO::DrawDissassembly()
 {
     GetDissassembly();
     
@@ -372,7 +372,7 @@ void Debugger::DrawDissassembly()
     }
 }
 
-void Debugger::DrawGraphicsDebugger()
+void DebuggerO::DrawGraphicsDebugger()
 {
     // Will enhanced and expanded
     ImGui::Begin("Graphics debugger");
@@ -393,7 +393,7 @@ void Debugger::DrawGraphicsDebugger()
     ImGui::End();
 }
 
-void Debugger::DrawStack()
+void DebuggerO::DrawStack()
 {
     ImGui::Begin("Stack");
     std::string t;
@@ -427,7 +427,7 @@ void Debugger::DrawStack()
     ImGui::End();
 }
 
-void Debugger::DrawKey()
+void DebuggerO::DrawKey()
 {
     ImGui::Begin("Key", 0, ImGuiWindowFlags_::ImGuiWindowFlags_HorizontalScrollbar);
     std::string ss;
@@ -460,7 +460,7 @@ void Debugger::DrawKey()
     ImGui::End();
 }
 
-std::string Debugger::DecodeInstruction(uint16_t opcode)
+std::string DebuggerO::DecodeInstruction(uint16_t opcode)
 {
     std::string decoded = "??";
     decoded.resize(20);

@@ -54,15 +54,55 @@ public:
 		vm = nullptr;
 	}
 
+	
+	
+	
 	void SingleStep()
 	{
+		
+		bool IsItCallOpcode = (((vm->memory[vm->PC] << 8 | vm->memory[vm->PC + 1]) & 0xF000) == 0x2000);
 
+		bool RunUntilReturn = true;
+		int CyclesThatNeedsToBeExecuted = 0;
+
+		int FakePC = ((vm->memory[vm->PC] << 8 | vm->memory[vm->PC + 1]) & 0x0FFF);
+
+		if (IsItCallOpcode == true)
+		{
+			while (RunUntilReturn)
+			{
+				if (((vm->memory[FakePC] << 8 | vm->memory[FakePC + 1]) & 0xF0FF) == 0x00EE)
+				{
+					CyclesThatNeedsToBeExecuted++;
+					RunUntilReturn = false;
+					break;
+				}
+				FakePC += 2;
+				CyclesThatNeedsToBeExecuted++;
+			}
+			CyclesThatNeedsToBeExecuted++;
+
+
+			for (int i = 0; i < CyclesThatNeedsToBeExecuted; i++)
+			{
+				vm->cycle();
+			}
+
+			return;
+		}
+
+		vm->cycle();
+
+		return;
 	}
 
 	void StepInto()
 	{
-
+		vm->cycle();
+		return;
 	}
+
+
 	
 	void AddBreakpoint(int addr)
 	{
@@ -119,17 +159,38 @@ public:
 		{
 			switch (Register)
 			{
-			case Registers::I: vm->I = value; break;
-			case Registers::ST: vm->ST = (uint8_t)value; break;
-			case Registers::DT: vm->DT = (uint8_t)value; break;
-			case Registers::PC: vm->PC = value; break; 
-			case Registers::SP: vm->SP = (uint8_t)value; break;
+				case Registers::I: vm->I = value; break;
+				case Registers::ST: vm->ST = (uint8_t)value; break;
+				case Registers::DT: vm->DT = (uint8_t)value; break;
+				case Registers::PC: vm->PC = value; break; 
+				case Registers::SP: vm->SP = (uint8_t)value; break;
 			}
 		}
 		else
 		{
-			vm->V[Register] = value;
+			vm->V[Register] = (uint8_t)value;
 		}
+	}
+	
+	uint16_t get_value_of_register(int Register)
+	{
+		if (Register > 15)
+		{
+			switch (Register)
+			{
+			case Registers::I: return vm->I;
+			case Registers::ST: return vm->ST;
+			case Registers::DT: return vm->DT;
+			case Registers::PC: return vm->PC;
+			case Registers::SP: return vm->SP;
+			}
+		}
+		else
+		{
+			return vm->V[Register];
+		}
+
+		return 21;
 	}
 
 	std::string get_status_str()

@@ -15,7 +15,7 @@ struct InstructionData
 	bool selected;
 };
 
-class Debugger
+class DebuggerO
 {
 public:
 
