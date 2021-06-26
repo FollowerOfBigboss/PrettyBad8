@@ -39,7 +39,6 @@ enum Registers
 	SP
 };
 
-
 class Debugger
 {
 public:
@@ -53,9 +52,6 @@ public:
 	{
 		vm = nullptr;
 	}
-
-	
-	
 	
 	void SingleStep()
 	{
