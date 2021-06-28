@@ -51,7 +51,10 @@ add_executable(EmuPBad8
 	       sources/vm/vm.h
 
 	       sources/vm/debugger_n.h
+	       sources/vm/debugger_n.cpp
+
 	       sources/gui/debugger_ui.h
+	       sources/gui/debugger_ui.cpp
 )
 
 add_library(GLAD
