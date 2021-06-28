@@ -134,9 +134,24 @@ void DebuggerUi::DrawDisassembly()
 				ImGui::TableSetBgColor(ImGuiTableBgTarget_::ImGuiTableBgTarget_RowBg0, IM_COL32(50, 205, 50, 255));
 			}
 
+			if (selected[i] == true)
+			{
+				ImGui::TableSetBgColor(ImGuiTableBgTarget_::ImGuiTableBgTarget_RowBg0, IM_COL32(255, 0, 0, 255));
+			}
+
 			ImGui::TableNextColumn();
 			std::string s = std::to_string( 512 + (i*2) );
-			ImGui::Selectable(s.c_str(), &selected[i], ImGuiSelectableFlags_SpanAllColumns);
+			if (ImGui::Selectable(s.c_str(), &selected[i], ImGuiSelectableFlags_SpanAllColumns))
+			{
+				if (selected[i] == false)
+				{
+					debugger->RemoveBreakpoint(512 + (i * 2));
+				}
+				else
+				{
+					debugger->AddBreakpoint(512 + (i * 2));
+				}
+			}
 
 			ImGui::TableNextColumn();
 			ImGui::Text(inif.bytes.c_str());
@@ -379,7 +394,14 @@ void DebuggerUi::DrawCpuDebugger()
 	ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(50, 205, 50, 255));
 	if (ImGui::Button("Resume"))
 	{
-		debugger->set_status(DebuggerStatus::debugger_running);
+		if (debugger->debugger_status == DebuggerStatus::debugger_breakpoint_hit)
+		{
+			debugger->set_status(DebuggerStatus::debugger_run_after_breakpoint_hit);
+		}
+		else
+		{
+			debugger->set_status(DebuggerStatus::debugger_running);
+		}
 	}
 
 	ImGui::PopStyleColor();
