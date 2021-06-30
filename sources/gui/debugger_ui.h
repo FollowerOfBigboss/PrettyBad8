@@ -14,20 +14,21 @@ class DebuggerUi
 {
 public:
 
-	void attach(Debugger* dbg);
-	void deattach(Debugger* dbg);
+	DebuggerUi();
 
+	inline void attach(Debugger* dbg) { debugger = dbg; }
+	inline void deattach(Debugger* dbg) { debugger = nullptr; }
 
 	void draw();
 
-
 	void DebuggerStatus();
 	void DrawCpuDebugger();
+	void GetDisassembly();
 
 
 private:
 
-	void sync();
+	void UpdateDebuggerTemporaryValues();
 	void ApplyChanged();
 
 	void DrawDisassembly();
@@ -35,33 +36,33 @@ private:
 
 	InstructionInfo GetInstructionInfo(int address);
 
-	bool selected[1792];
-
 	Debugger* debugger;
-	int current_item = 0;
 
+	// Temporary variables used for imgui
 	int TemporaryV[16];
 	int TemporaryPC;
-
 	int TemporaryI;
 	int TemporaryST;
 	int TemporaryDT;
 	int TemporarySP;
 
 	bool bStopAfterReset = false;
-	
-	bool track_pc = false;
-	
 	bool bShowDisassembler = true;
 	bool bShowBreakpointList = false;
-	
-	const char* templabelsV[16] =
+	bool track_pc = false;
+		
+	std::vector<InstructionInfo> ininfo;
+	bool selected[1792];
+
+	// Identifiers for input boxes
+	const char* const templabelsV[16] =
 	{
 		"##V0", "##V1", "##V2", "##V3", "##V4", "##V5",
 		"##V6", "##V7", "##V8", "##V9", "##V10", "##V11",
 		"##V12", "##V13", "##V14", "##V15"
 	};
 
+	int IMcurritem = 0;
 };
 
 #endif

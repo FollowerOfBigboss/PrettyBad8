@@ -141,6 +141,7 @@ void EmuUi::EmuDraw()
 				vm.loadrom(filePathName);
 				RomLoaded = true;
 				EDebugger.set_status(DebuggerStatus::debugger_running);
+				DbgUi.GetDisassembly();
 			}
 
 			ImGuiFileDialog::Instance()->Close();

@@ -12,6 +12,9 @@ enum DebuggerStatus
 	debugger_breakpoint_hit,
 	debugger_run_after_breakpoint_hit,
 	debugger_not_running,
+
+	debugger_attached, // reserved
+	debugger_not_attached // reserved
 };
 
 enum Registers
@@ -42,32 +45,30 @@ enum Registers
 class Debugger
 {
 public:
-
-	void attach(VM* vmptr);
-	void deattach();
+	inline void attach(VM* vmptr) { vm = vmptr; }
+	inline void deattach() { vm = nullptr; }
 	
+	void run();
+	inline void reset() { vm->reset_and_loadrom(); }
+
+
+	inline int get_status() { return debugger_status; }
+	inline void set_status(int status) { debugger_status = status; }
+	std::string get_status_str();
+
+	uint16_t get_value_of_register(int Register);
+	void set_value_of_register(int Register, uint16_t value);
+	inline uint8_t get_value_from_memory(uint16_t address) { return vm->memory[address]; }
+
+
 	void SingleStep();
-	void StepInto();
+	inline void StepInto() { vm->cycle(); }
 
 	void AddBreakpoint(int addr);
 	void RemoveBreakpoint(int addr);
-
-	void run();
-	void reset();
-
-	void set_value_of_register(int Register, uint16_t value);
-	uint16_t get_value_of_register(int Register);
-
-	int get_status();
-	void set_status(int status);
-	std::string get_status_str();
-
-	uint8_t get_value_from_memory(uint16_t address);
-
+	
 	std::vector<int> BreakpointList;
 	int debugger_status = DebuggerStatus::debugger_not_running;
-
-	
 
 private:
 	VM* vm;

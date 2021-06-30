@@ -1,17 +1,23 @@
 #include "debugger_ui.h"
 
 
-void DebuggerUi::attach(Debugger* dbg)
+DebuggerUi::DebuggerUi()
 {
-	debugger = dbg;
+	for (int i = 0; i < 1793; i++)
+	{
+		ininfo.push_back({ "00 00","???" });
+	}
+
+	memset(&TemporaryV, 0, sizeof(TemporaryV));
+	TemporaryPC = 0;
+	TemporaryI = 0;
+	TemporaryST = 0;
+	TemporaryDT = 0;
+	TemporarySP = 0;
 }
 
-void DebuggerUi::deattach(Debugger* dbg)
-{
-	debugger = nullptr;
-}
 
-void DebuggerUi::sync()
+void DebuggerUi::UpdateDebuggerTemporaryValues()
 {
 	for (int i = 0; i < 16; i++)
 	{
@@ -78,7 +84,7 @@ void DebuggerUi::draw()
 {
 	DebuggerStatus();
 
-	sync();
+	UpdateDebuggerTemporaryValues();
 	DrawCpuDebugger();
 	ApplyChanged();
 }
@@ -114,6 +120,7 @@ void DebuggerUi::DebuggerStatus()
 
 void DebuggerUi::DrawDisassembly()
 {
+
 	if (ImGui::BeginTable("##disassembly", 3, ImGuiTableFlags_Resizable | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY))
 	{
 		ImGui::TableSetupScrollFreeze(0, 1);
@@ -121,12 +128,68 @@ void DebuggerUi::DrawDisassembly()
 		ImGui::TableSetupColumn("Bytes");
 		ImGui::TableSetupColumn("Instruction");
 		ImGui::TableHeadersRow();
-				
-		for (int i = 0; i < 1793; i++)
+
+		ImGuiListClipper clipper(1792, ImGui::GetTextLineHeight());
+
+		if (track_pc == true)
+		{
+			ImGui::SetScrollFromPosY( ( ((debugger->get_value_of_register(Registers::PC) - 512) / 2) * ImGui::GetTextLineHeight()) - ImGui::GetScrollY(), 0.35f);
+		}
+
+
+
+		while (clipper.Step())
+		{
+
+			for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)
+			{
+				ImGui::TableNextRow();
+
+				if (selected[i] == true)
+				{
+					ImGui::TableSetBgColor(ImGuiTableBgTarget_::ImGuiTableBgTarget_RowBg0, IM_COL32(255, 0, 0, 255));
+				}
+				if (debugger->get_value_of_register(Registers::PC) == (512 + (i * 2)))
+				{
+					ImGui::TableSetBgColor(ImGuiTableBgTarget_::ImGuiTableBgTarget_RowBg0, IM_COL32(50, 205, 50, 255));
+				}
+
+
+				ImGui::TableNextColumn();
+
+				char littlebuf[5] = { 0 };
+				ltoa(512 + (i * 2), littlebuf, 10);
+				if (ImGui::Selectable(littlebuf, &selected[i], ImGuiSelectableFlags_SpanAllColumns))
+
+						{
+							if (selected[i] == false)
+							{
+								debugger->RemoveBreakpoint(512 + (i * 2));
+							}
+							else
+							{
+								debugger->AddBreakpoint(512 + (i * 2));
+							}
+						}
+
+				ImGui::TableNextColumn();
+				ImGui::Text(ininfo[i].bytes.c_str());
+
+				ImGui::TableNextColumn();
+				ImGui::Text(ininfo[i].instruction.c_str());
+
+			}
+
+		}
+
+		clipper.End();
+
+		/*
+		if (ininfo.size() > 0)
+		{
+			for (int i = 0; i < 1793; i++)
 		{
 			ImGui::TableNextRow();
-
-			InstructionInfo inif = GetInstructionInfo(512 + (i * 2));
 
 			if (debugger->get_value_of_register(Registers::PC) == (512+(i*2)) && track_pc == true)
 			{
@@ -140,8 +203,11 @@ void DebuggerUi::DrawDisassembly()
 			}
 
 			ImGui::TableNextColumn();
-			std::string s = std::to_string( 512 + (i*2) );
-			if (ImGui::Selectable(s.c_str(), &selected[i], ImGuiSelectableFlags_SpanAllColumns))
+
+			char littlebuf[5] = { 0 };
+			ltoa(512 + (i * 2), littlebuf, 10);
+			if (ImGui::Selectable(littlebuf, &selected[i], ImGuiSelectableFlags_SpanAllColumns))
+
 			{
 				if (selected[i] == false)
 				{
@@ -154,15 +220,17 @@ void DebuggerUi::DrawDisassembly()
 			}
 
 			ImGui::TableNextColumn();
-			ImGui::Text(inif.bytes.c_str());
+			ImGui::Text(ininfo[i].bytes.c_str());
 
 			ImGui::TableNextColumn();
-			ImGui::Text(inif.instruction.c_str());
+			ImGui::Text(ininfo[i].instruction.c_str());
 			
 		}
+
+		}
+		*/
 		ImGui::EndTable();
 	}
-
 }
 
 void DebuggerUi::DrawBreakPointList()
@@ -172,11 +240,14 @@ void DebuggerUi::DrawBreakPointList()
 	{
 		for (int n = 0; n < debugger->BreakpointList.size(); n++)
 		{
-			const bool is_selected = (current_item == n);
-			std::string t = std::to_string(debugger->BreakpointList[n]);
-			if (ImGui::Selectable(t.c_str(), is_selected))
+			const bool is_selected = (IMcurritem == n);			
+			
+			char littlebuf[5];
+			ltoa(debugger->BreakpointList[n], littlebuf, 10);
+			
+			if (ImGui::Selectable(littlebuf, is_selected))
 			{
-				current_item = n;
+				IMcurritem = n;
 			}
 
 			if (is_selected)
@@ -362,6 +433,14 @@ InstructionInfo DebuggerUi::GetInstructionInfo(int address)
 	return {tmp, decoded};
 }
 
+void DebuggerUi::GetDisassembly()
+{
+	for (int i = 0; i < 1793; i++)
+	{
+		ininfo[i] = GetInstructionInfo(512 + (i * 2));
+	}
+}
+
 void DebuggerUi::DrawCpuDebugger()
 {
 	ImGui::Begin("CPU Debugger", 0, ImGuiWindowFlags_::ImGuiWindowFlags_MenuBar);
@@ -394,13 +473,16 @@ void DebuggerUi::DrawCpuDebugger()
 	ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(50, 205, 50, 255));
 	if (ImGui::Button("Resume"))
 	{
-		if (debugger->debugger_status == DebuggerStatus::debugger_breakpoint_hit)
+		if (debugger->debugger_status != DebuggerStatus::debugger_not_running)
 		{
-			debugger->set_status(DebuggerStatus::debugger_run_after_breakpoint_hit);
-		}
-		else
-		{
-			debugger->set_status(DebuggerStatus::debugger_running);
+			if (debugger->debugger_status == DebuggerStatus::debugger_breakpoint_hit)
+			{
+				debugger->set_status(DebuggerStatus::debugger_run_after_breakpoint_hit);
+			}
+			else
+			{
+				debugger->set_status(DebuggerStatus::debugger_running);
+			}
 		}
 	}
 
@@ -411,7 +493,10 @@ void DebuggerUi::DrawCpuDebugger()
 	ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(255, 0, 0, 255));
 	if (ImGui::Button("Pause"))
 	{
-		debugger->set_status(DebuggerStatus::debugger_pause);
+		if (debugger->debugger_status != DebuggerStatus::debugger_not_running)
+		{
+			debugger->set_status(DebuggerStatus::debugger_pause);
+		}
 	}
 
 	ImGui::PopStyleColor();
@@ -420,29 +505,35 @@ void DebuggerUi::DrawCpuDebugger()
 	
 	if (ImGui::Button("Reset"))
 	{
-		if (bStopAfterReset == true)
+		if (debugger->debugger_status != DebuggerStatus::debugger_not_running)
 		{
-			debugger->set_status(DebuggerStatus::debugger_pause);
-		}
+			if (bStopAfterReset == true)
+			{
+				debugger->set_status(DebuggerStatus::debugger_pause);
+			}
 
-		debugger->reset();
-		sync();
+			debugger->reset();
+			UpdateDebuggerTemporaryValues();
+		}
 	}
 
 	ImGui::SameLine();
 
 	if (ImGui::Button("Single Step"))
 	{
-		if (debugger->debugger_status == DebuggerStatus::debugger_running)
+		if (debugger->debugger_status != DebuggerStatus::debugger_not_running)
 		{
-			debugger->set_status(DebuggerStatus::debugger_pause);
-		}
+			if (debugger->debugger_status == DebuggerStatus::debugger_running)
+			{
+				debugger->set_status(DebuggerStatus::debugger_pause);
+			}
 
 
-		if (debugger->debugger_status != DebuggerStatus::debugger_running)
-		{
-			debugger->SingleStep();
-			sync();
+			if (debugger->debugger_status != DebuggerStatus::debugger_running)
+			{
+				debugger->SingleStep();
+				UpdateDebuggerTemporaryValues();
+			}
 		}
 	}
 
@@ -458,7 +549,7 @@ void DebuggerUi::DrawCpuDebugger()
 		if (debugger->debugger_status != DebuggerStatus::debugger_running)
 		{
 			debugger->StepInto();
-			sync();
+			UpdateDebuggerTemporaryValues();
 		}
 	}
 

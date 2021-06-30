@@ -1,14 +1,86 @@
 #include "debugger_n.h"
 
-	
-void Debugger::attach(VM* vmptr)
+void Debugger::run()
 {
-	vm = vmptr;
+	// this flag set by outside
+	if (debugger_status == DebuggerStatus::debugger_run_after_breakpoint_hit)
+	{
+		vm->cycle();
+
+		// Expired one time only ticket
+		debugger_status = DebuggerStatus::debugger_running;
+	}
+
+	if (debugger_status == DebuggerStatus::debugger_running)
+	{
+		int a = hztocycles(500);
+
+		for (int i = 0; i < a; i++)
+		{
+			if (std::find(BreakpointList.begin(), BreakpointList.end(), vm->PC) != BreakpointList.end())
+			{
+				debugger_status = DebuggerStatus::debugger_breakpoint_hit;
+			}
+			else
+			{
+				vm->cycle();
+			}
+		}
+	}
+
 }
 
-void Debugger::deattach()
+std::string Debugger::get_status_str()
 {
-	vm = nullptr;
+	switch (debugger_status)
+	{
+		case DebuggerStatus::debugger_running: return "Debugger Running";
+		case DebuggerStatus::debugger_pause: return "Debugger Pause";
+		case DebuggerStatus::debugger_breakpoint_hit: return "Debugger Breakpoint Hit";
+		case DebuggerStatus::debugger_run_after_breakpoint_hit: return "Debugger Run After Breakpoint Hit";
+		case DebuggerStatus::debugger_not_running: return "Debugger Not Running";
+		default: return "Unknown";
+	}
+}
+
+uint16_t Debugger::get_value_of_register(int Register)
+{
+	if (Register > 15)
+	{
+		switch (Register)
+		{
+		case Registers::I: return vm->I;
+		case Registers::ST: return vm->ST;
+		case Registers::DT: return vm->DT;
+		case Registers::PC: return vm->PC;
+		case Registers::SP: return vm->SP;
+		}
+	}
+	else
+	{
+		return vm->V[Register];
+	}
+
+	return 21;
+}
+
+void Debugger::set_value_of_register(int Register, uint16_t value)
+{
+	if (Register > 15)
+	{
+		switch (Register)
+		{
+		case Registers::I: vm->I = value; break;
+		case Registers::ST: vm->ST = (uint8_t)value; break;
+		case Registers::DT: vm->DT = (uint8_t)value; break;
+		case Registers::PC: vm->PC = value; break;
+		case Registers::SP: vm->SP = (uint8_t)value; break;
+		}
+	}
+	else
+	{
+		vm->V[Register] = (uint8_t)value;
+	}
 }
 
 void Debugger::SingleStep()
@@ -50,12 +122,6 @@ void Debugger::SingleStep()
 	return;
 }
 
-void Debugger::StepInto()
-{
-	vm->cycle();
-	return;
-}
-
 void Debugger::AddBreakpoint(int addr)
 {
 	if (std::find(BreakpointList.begin(), BreakpointList.end(), addr) == BreakpointList.end())
@@ -73,107 +139,4 @@ void Debugger::RemoveBreakpoint(int addr)
 			BreakpointList.erase(BreakpointList.begin() + i);
 		}
 	}
-}
-
-void Debugger::run()
-{
-	// this flag set by outside
-	if (debugger_status == DebuggerStatus::debugger_run_after_breakpoint_hit)
-	{
-		vm->cycle();
-
-		// Expired one time only ticket
-		debugger_status = DebuggerStatus::debugger_running;
-	}
-
-	if (debugger_status == DebuggerStatus::debugger_running)
-	{
-		int a = hztocycles(500);
-
-		for (int i = 0; i < a; i++)
-		{
-			if (std::find(BreakpointList.begin(), BreakpointList.end(), vm->PC) != BreakpointList.end())
-			{
-				debugger_status = DebuggerStatus::debugger_breakpoint_hit;
-			}
-			else
-			{
-				vm->cycle();
-			}
-		}
-	}
-
-}
-
-void Debugger::set_value_of_register(int Register, uint16_t value)
-{
-	if (Register > 15)
-	{
-		switch (Register)
-		{
-		case Registers::I: vm->I = value; break;
-		case Registers::ST: vm->ST = (uint8_t)value; break;
-		case Registers::DT: vm->DT = (uint8_t)value; break;
-		case Registers::PC: vm->PC = value; break;
-		case Registers::SP: vm->SP = (uint8_t)value; break;
-		}
-	}
-	else
-	{
-		vm->V[Register] = (uint8_t)value;
-	}
-}
-
-uint16_t Debugger::get_value_of_register(int Register)
-{
-	if (Register > 15)
-	{
-		switch (Register)
-		{
-		case Registers::I: return vm->I;
-		case Registers::ST: return vm->ST;
-		case Registers::DT: return vm->DT;
-		case Registers::PC: return vm->PC;
-		case Registers::SP: return vm->SP;
-		}
-	}
-	else
-	{
-		return vm->V[Register];
-	}
-
-	return 21;
-}
-
-std::string Debugger::get_status_str()
-{
-	switch (debugger_status)
-	{
-	case DebuggerStatus::debugger_running: return "Debugger Running";
-	case DebuggerStatus::debugger_pause: return "Debugger Pause";
-	case DebuggerStatus::debugger_breakpoint_hit: return "Debugger Breakpoint Hit";
-	case DebuggerStatus::debugger_run_after_breakpoint_hit: return "Debugger Run After Breakpoint Hit";
-	case DebuggerStatus::debugger_not_running: return "Debugger Not Running";
-	default: return "Unknown";
-	}
-}
-
-int Debugger::get_status()
-{
-	return debugger_status;
-}
-
-void Debugger::set_status(int status)
-{
-	debugger_status = status;
-}
-
-void Debugger::reset()
-{
-	vm->reset_and_loadrom();
-}
-
-uint8_t Debugger::get_value_from_memory(uint16_t address)
-{
-	return vm->memory[address];
 }
