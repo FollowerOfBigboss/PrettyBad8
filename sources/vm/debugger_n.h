@@ -70,7 +70,6 @@ public:
 	std::vector<int> BreakpointList;
 	int debugger_status = DebuggerStatus::debugger_not_running;
 
-private:
 	VM* vm;
 };
 

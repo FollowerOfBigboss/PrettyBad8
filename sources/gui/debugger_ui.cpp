@@ -29,6 +29,7 @@ void DebuggerUi::UpdateDebuggerTemporaryValues()
 	TemporaryST = debugger->get_value_of_register(Registers::ST);
 	TemporaryDT = debugger->get_value_of_register(Registers::DT);
 	TemporarySP = debugger->get_value_of_register(Registers::SP);
+
 }
 
 void DebuggerUi::ApplyChanged()
@@ -84,9 +85,12 @@ void DebuggerUi::draw()
 {
 	DebuggerStatus();
 
-	UpdateDebuggerTemporaryValues();
-	DrawCpuDebugger();
-	ApplyChanged();
+// 	UpdateDebuggerTemporaryValues();
+//	DrawCpuDebugger();
+// 	ApplyChanged();
+//	DrawStack();
+//	DrawKey();
+//	DrawGraphicsDebugger();
 }
 
 void DebuggerUi::DebuggerStatus()
@@ -441,8 +445,107 @@ void DebuggerUi::GetDisassembly()
 	}
 }
 
+void DebuggerUi::DrawGraphicsDebugger()
+{
+	ImGui::Begin("Graphics debugger");
+	std::string tmp;
+
+	int i = 0;
+	char stmp[5];
+
+	while (i < 64 * 32)
+	{
+		for (int j = 0; j < 64; j++)
+		{
+			ltoa(debugger->vm->gfx[i + j], stmp, 10);
+			// tmp += std::to_string((int)debugger->vm->gfx[i + j]);
+			tmp += stmp;
+		}
+		tmp += "\n";
+		i += 64;
+	}
+
+	ImGui::Text(tmp.c_str());
+	ImGui::End();
+}
+
+void DebuggerUi::DrawStack()
+{
+	ImGui::Begin("Stack");
+	std::string t;
+	static int item_current_idx;
+
+	if (ImGui::BeginListBox("##stack", ImVec2(-1, -1)))
+	{
+
+		for (int n = 15; n > -1; n--)
+		{
+
+			const bool is_selected = (item_current_idx == n);
+			t = std::to_string(debugger->vm->stack[n]);
+			t += "##";
+			t += std::to_string(n);
+
+			if (ImGui::Selectable(t.c_str(), is_selected))
+			{
+				item_current_idx = n;
+			}
+
+			if (is_selected)
+			{
+				ImGui::SetItemDefaultFocus();
+			}
+
+		}
+
+		ImGui::EndListBox();
+	}
+
+	ImGui::End();
+}
+
+void DebuggerUi::DrawKey()
+{
+	ImGui::Begin("Key", 0, ImGuiWindowFlags_::ImGuiWindowFlags_HorizontalScrollbar);
+	std::string ss;
+	ImGui::SetWindowSize(ImVec2(245, 250));
+
+	for (int i = 0; i < 16; i++)
+	{
+
+//		ss = std::to_string(TemporaryKey[i]);
+
+		ss = std::to_string(debugger->vm->Key[i]);
+
+//		if (TemporaryKey[i] == 1)
+		if (debugger->vm->Key[i] == 1)
+		{
+			ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(255, 0, 0, 255));
+		}
+
+		ImGui::Button(ss.c_str(), ImVec2(50, 50));
+
+//		if (TemporaryKey[i] == 1)
+		if (debugger->vm->Key[i] == 1)
+		{
+			ImGui::PopStyleColor();
+		}
+
+		if (!((i + 1) % 4 == 0))
+		{
+			ImGui::SameLine();
+		}
+
+	}
+
+	ImGui::End();
+}
+
 void DebuggerUi::DrawCpuDebugger()
 {
+	UpdateDebuggerTemporaryValues();
+
+
 	ImGui::Begin("CPU Debugger", 0, ImGuiWindowFlags_::ImGuiWindowFlags_MenuBar);
 
 	if (ImGui::BeginMenuBar())
@@ -610,5 +713,8 @@ void DebuggerUi::DrawCpuDebugger()
 	{
 		DrawBreakPointList();
 	}
+
+
+	ApplyChanged();
 
 }

@@ -25,6 +25,10 @@ public:
 	void DrawCpuDebugger();
 	void GetDisassembly();
 
+	void DrawGraphicsDebugger();
+	void DrawStack();
+	void DrawKey();
+
 
 private:
 
@@ -33,6 +37,9 @@ private:
 
 	void DrawDisassembly();
 	void DrawBreakPointList();
+
+
+	void UpdateTemporaryKey();
 
 	InstructionInfo GetInstructionInfo(int address);
 
@@ -45,6 +52,7 @@ private:
 	int TemporaryST;
 	int TemporaryDT;
 	int TemporarySP;
+	int TemporaryKey[16];
 
 	bool bStopAfterReset = false;
 	bool bShowDisassembler = true;

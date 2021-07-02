@@ -36,6 +36,7 @@ void EmuUi::DrawMenuBar()
 			{
 				ImGui::MenuItem("Open", 0, &DrawFile);
 
+
 				if (ImGui::MenuItem("Close", 0))
 				{
 					
@@ -56,14 +57,14 @@ void EmuUi::DrawMenuBar()
 				ImGui::EndMenu();
 			}
 
-// 			if (ImGui::BeginMenu("Debug"))
-// 			{
-// 				ImGui::MenuItem("Debugger", 0, &ShowCpuDebugger);
-// 				ImGui::MenuItem("Graphics Debugger", 0, &ShowGraphicsDebugger);
-// 				ImGui::MenuItem("Stack View", 0, &ShowStackView);
-// 				ImGui::MenuItem("Key View", 0, &ShowKeyView);
-// 				ImGui::EndMenu();
-// 			}
+ 			if (ImGui::BeginMenu("Debug"))
+ 			{
+ 				ImGui::MenuItem("CPU Debugger", 0, &ShowCpuDebugger);
+ 				ImGui::MenuItem("Graphics Debugger", 0, &ShowGraphicsDebugger);
+ 				ImGui::MenuItem("Stack View", 0, &ShowStackView);
+ 				ImGui::MenuItem("Key View", 0, &ShowKeyView);
+ 				ImGui::EndMenu();
+ 			}
 
 
 			ImGui::EndMainMenuBar();
@@ -75,35 +76,26 @@ void EmuUi::DrawMenuBar()
 
 void EmuUi::DrawDebuggerStuf()
 {
-// 	if (ShowGraphicsDebugger)
-//	{
-//		EDebugger.DrawGraphicsDebugger();
-//	}
-// 
-// 	if (ShowStackView)
-// 	{
-// 		EDebugger.GetStackInformation();
-// 		EDebugger.DrawStack();
-// 	}
-// 
-// 	if (ShowKeyView)
-//	{
-//		EDebugger.GetKeyInformation();
-//		EDebugger.DrawKey();
-//	}
-// 
-// 
-// 	if (ShowCpuDebugger)
-// 	{
-// 		ImGui::Begin("Debugger");
-// 		EDebugger.HandleAndDrawDebuggerInput();
-// 		EDebugger.GetRegisterInformations();
-// 		EDebugger.DrawRegisters();
-// 
-// 		EDebugger.DrawDissassembly();
-// 		EDebugger.ApplyChangedInformation();
-// 		ImGui::End();
-// 	}
+ 	if (ShowGraphicsDebugger)
+	{
+		DbgUi.DrawGraphicsDebugger();
+	}
+
+	if (ShowStackView)
+ 	{
+		DbgUi.DrawStack();
+	}
+
+	if (ShowKeyView)
+	{
+		DbgUi.DrawKey();
+	}
+
+	if (ShowCpuDebugger)
+	{
+		DbgUi.DrawCpuDebugger();
+	}
+
 
 	DbgUi.draw();
 }
