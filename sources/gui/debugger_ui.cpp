@@ -187,52 +187,6 @@ void DebuggerUi::DrawDisassembly()
 		}
 
 		clipper.End();
-
-		/*
-		if (ininfo.size() > 0)
-		{
-			for (int i = 0; i < 1793; i++)
-		{
-			ImGui::TableNextRow();
-
-			if (debugger->get_value_of_register(Registers::PC) == (512+(i*2)) && track_pc == true)
-			{
-				ImGui::SetScrollHereY();
-				ImGui::TableSetBgColor(ImGuiTableBgTarget_::ImGuiTableBgTarget_RowBg0, IM_COL32(50, 205, 50, 255));
-			}
-
-			if (selected[i] == true)
-			{
-				ImGui::TableSetBgColor(ImGuiTableBgTarget_::ImGuiTableBgTarget_RowBg0, IM_COL32(255, 0, 0, 255));
-			}
-
-			ImGui::TableNextColumn();
-
-			char littlebuf[5] = { 0 };
-			ltoa(512 + (i * 2), littlebuf, 10);
-			if (ImGui::Selectable(littlebuf, &selected[i], ImGuiSelectableFlags_SpanAllColumns))
-
-			{
-				if (selected[i] == false)
-				{
-					debugger->RemoveBreakpoint(512 + (i * 2));
-				}
-				else
-				{
-					debugger->AddBreakpoint(512 + (i * 2));
-				}
-			}
-
-			ImGui::TableNextColumn();
-			ImGui::Text(ininfo[i].bytes.c_str());
-
-			ImGui::TableNextColumn();
-			ImGui::Text(ininfo[i].instruction.c_str());
-			
-		}
-
-		}
-		*/
 		ImGui::EndTable();
 	}
 }
@@ -263,6 +217,15 @@ void DebuggerUi::DrawBreakPointList()
 	}
 
 	ImGui::End();
+}
+
+void DebuggerUi::UpdateTemporaryKey()
+{
+
+	for (int i = 0; i < 16; i++)
+	{
+		TemporaryKey[i] = debugger->vm->Key[i];
+	}
 }
 
 InstructionInfo DebuggerUi::GetInstructionInfo(int address)
@@ -506,27 +469,33 @@ void DebuggerUi::DrawStack()
 
 void DebuggerUi::DrawKey()
 {
+	if (debugger->debugger_status != DebuggerStatus::debugger_pause)
+	{
+		UpdateTemporaryKey();
+	}
+
 	ImGui::Begin("Key", 0, ImGuiWindowFlags_::ImGuiWindowFlags_HorizontalScrollbar);
+
 	std::string ss;
 	ImGui::SetWindowSize(ImVec2(245, 250));
 
 	for (int i = 0; i < 16; i++)
 	{
 
-//		ss = std::to_string(TemporaryKey[i]);
+		ss = std::to_string(TemporaryKey[i]);
 
-		ss = std::to_string(debugger->vm->Key[i]);
+//		ss = std::to_string(debugger->vm->Key[i]);
 
-//		if (TemporaryKey[i] == 1)
-		if (debugger->vm->Key[i] == 1)
+		if (TemporaryKey[i] == 1)
+//		if (debugger->vm->Key[i] == 1)
 		{
 			ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(255, 0, 0, 255));
 		}
 
 		ImGui::Button(ss.c_str(), ImVec2(50, 50));
 
-//		if (TemporaryKey[i] == 1)
-		if (debugger->vm->Key[i] == 1)
+		if (TemporaryKey[i] == 1)
+//		if (debugger->vm->Key[i] == 1)
 		{
 			ImGui::PopStyleColor();
 		}
@@ -617,6 +586,7 @@ void DebuggerUi::DrawCpuDebugger()
 
 			debugger->reset();
 			UpdateDebuggerTemporaryValues();
+			UpdateTemporaryKey();
 		}
 	}
 
@@ -636,6 +606,7 @@ void DebuggerUi::DrawCpuDebugger()
 			{
 				debugger->SingleStep();
 				UpdateDebuggerTemporaryValues();
+				UpdateTemporaryKey();
 			}
 		}
 	}
@@ -653,6 +624,7 @@ void DebuggerUi::DrawCpuDebugger()
 		{
 			debugger->StepInto();
 			UpdateDebuggerTemporaryValues();
+			UpdateTemporaryKey();
 		}
 	}
 

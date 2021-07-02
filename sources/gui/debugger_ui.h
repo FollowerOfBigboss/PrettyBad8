@@ -33,13 +33,11 @@ public:
 private:
 
 	void UpdateDebuggerTemporaryValues();
+	void UpdateTemporaryKey();
 	void ApplyChanged();
 
 	void DrawDisassembly();
 	void DrawBreakPointList();
-
-
-	void UpdateTemporaryKey();
 
 	InstructionInfo GetInstructionInfo(int address);
 

@@ -66,7 +66,7 @@ void EmuUi::DrawMenuBar()
  				ImGui::EndMenu();
  			}
 
-
+			DbgUi.DebuggerStatus();
 			ImGui::EndMainMenuBar();
 		}
 
@@ -76,7 +76,7 @@ void EmuUi::DrawMenuBar()
 
 void EmuUi::DrawDebuggerStuf()
 {
- 	if (ShowGraphicsDebugger)
+	if (ShowGraphicsDebugger)
 	{
 		DbgUi.DrawGraphicsDebugger();
 	}
@@ -96,25 +96,23 @@ void EmuUi::DrawDebuggerStuf()
 		DbgUi.DrawCpuDebugger();
 	}
 
-
-	DbgUi.draw();
 }
 
 void EmuUi::EmuLoop()
 {
-	if (RomLoaded)
+	if ( RomLoaded && (ShowCpuDebugger == true || ShowGraphicsDebugger == true || ShowKeyView == true || ShowStackView == true) )
 	{
 		EDebugger.run();
-	// 	// if (ShowCpuDebugger == true && RomLoaded == true)
-	// 	if (RomLoaded == true)
-	// 	{
-	// 		EDebugger.run();
-	// 	}
-	// 	else
-	// 	{
-	// 		vm.run(500);
-	// 	}
 	}
+	else if (RomLoaded)
+	{
+		vm.run(500);
+	}
+	else
+	{
+		// std::cout << "Wait till rom loads" << "\n";
+	}
+
 }
 
 void EmuUi::EmuDraw()
