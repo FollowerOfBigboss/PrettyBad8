@@ -19,8 +19,6 @@ public:
 	inline void attach(Debugger* dbg) { debugger = dbg; }
 	inline void deattach(Debugger* dbg) { debugger = nullptr; }
 
-	void draw();
-
 	void DebuggerStatus();
 	void DrawCpuDebugger();
 	void GetDisassembly();
@@ -28,7 +26,6 @@ public:
 	void DrawGraphicsDebugger();
 	void DrawStack();
 	void DrawKey();
-
 
 private:
 

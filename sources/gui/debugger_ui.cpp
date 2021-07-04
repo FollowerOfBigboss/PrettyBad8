@@ -81,18 +81,6 @@ void DebuggerUi::ApplyChanged()
 
 }
 
-void DebuggerUi::draw()
-{
-	DebuggerStatus();
-
-// 	UpdateDebuggerTemporaryValues();
-//	DrawCpuDebugger();
-// 	ApplyChanged();
-//	DrawStack();
-//	DrawKey();
-//	DrawGraphicsDebugger();
-}
-
 void DebuggerUi::DebuggerStatus()
 {
 	int status = debugger->get_status();
@@ -133,14 +121,12 @@ void DebuggerUi::DrawDisassembly()
 		ImGui::TableSetupColumn("Instruction");
 		ImGui::TableHeadersRow();
 
-		ImGuiListClipper clipper(1792, ImGui::GetTextLineHeight());
+		ImGuiListClipper clipper(1793);
 
 		if (track_pc == true)
 		{
-			ImGui::SetScrollFromPosY( ( ((debugger->get_value_of_register(Registers::PC) - 512) / 2) * ImGui::GetTextLineHeight()) - ImGui::GetScrollY(), 0.35f);
+			ImGui::SetScrollFromPosY( ( ((debugger->get_value_of_register(Registers::PC) - 512) / 2) * ImGui::GetTextLineHeightWithSpacing()) - ImGui::GetScrollY(), 0.25f);
 		}
-
-
 
 		while (clipper.Step())
 		{
@@ -194,34 +180,38 @@ void DebuggerUi::DrawDisassembly()
 void DebuggerUi::DrawBreakPointList()
 {
 	ImGui::Begin("BreakPoint List");
-	if (ImGui::BeginListBox("##BreakpointList", ImVec2(-FLT_MIN, -FLT_MIN)))
-	{
-		for (int n = 0; n < debugger->BreakpointList.size(); n++)
-		{
-			const bool is_selected = (IMcurritem == n);			
-			
-			char littlebuf[5];
-			ltoa(debugger->BreakpointList[n], littlebuf, 10);
-			
-			if (ImGui::Selectable(littlebuf, is_selected))
-			{
-				IMcurritem = n;
-			}
 
-			if (is_selected)
+	if (ImGui::BeginTable("##BreakpointList", 1, (ImGuiTableFlags_Resizable | ImGuiTableFlags_ScrollY) &  ~ImGuiTableFlags_::ImGuiTableFlags_RowBg))
+	{
+		ImGui::TableSetupScrollFreeze(0, 1);
+		ImGui::TableSetupColumn("Address");
+		ImGui::TableHeadersRow();
+
+		ImGuiListClipper clipper;
+		clipper.Begin(debugger->BreakpointList.size());
+
+		while (clipper.Step())
+		{
+			for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)
 			{
-				ImGui::SetItemDefaultFocus();
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn();
+
+				char littlebuf[5] = { 0 };
+				ltoa(debugger->BreakpointList[i], littlebuf, 10);
+				ImGui::Selectable(littlebuf);
+
 			}
 		}
-		ImGui::EndListBox();
-	}
 
+		clipper.End();
+		ImGui::EndTable();
+	}
 	ImGui::End();
 }
 
 void DebuggerUi::UpdateTemporaryKey()
 {
-
 	for (int i = 0; i < 16; i++)
 	{
 		TemporaryKey[i] = debugger->vm->Key[i];
@@ -414,14 +404,13 @@ void DebuggerUi::DrawGraphicsDebugger()
 	std::string tmp;
 
 	int i = 0;
-	char stmp[5];
+	char stmp[5] = { 0 };
 
 	while (i < 64 * 32)
 	{
 		for (int j = 0; j < 64; j++)
 		{
 			ltoa(debugger->vm->gfx[i + j], stmp, 10);
-			// tmp += std::to_string((int)debugger->vm->gfx[i + j]);
 			tmp += stmp;
 		}
 		tmp += "\n";
@@ -436,29 +425,15 @@ void DebuggerUi::DrawStack()
 {
 	ImGui::Begin("Stack");
 	std::string t;
-	static int item_current_idx;
+	char tmp[11] = { 0 };
 
 	if (ImGui::BeginListBox("##stack", ImVec2(-1, -1)))
 	{
-
 		for (int n = 15; n > -1; n--)
 		{
 
-			const bool is_selected = (item_current_idx == n);
-			t = std::to_string(debugger->vm->stack[n]);
-			t += "##";
-			t += std::to_string(n);
-
-			if (ImGui::Selectable(t.c_str(), is_selected))
-			{
-				item_current_idx = n;
-			}
-
-			if (is_selected)
-			{
-				ImGui::SetItemDefaultFocus();
-			}
-
+			sprintf(tmp, "%i##%i", debugger->vm->stack[n], n);
+			ImGui::Selectable(tmp, false);
 		}
 
 		ImGui::EndListBox();
@@ -476,26 +451,21 @@ void DebuggerUi::DrawKey()
 
 	ImGui::Begin("Key", 0, ImGuiWindowFlags_::ImGuiWindowFlags_HorizontalScrollbar);
 
-	std::string ss;
+	char tmp[2] = { 0 };
 	ImGui::SetWindowSize(ImVec2(245, 250));
 
 	for (int i = 0; i < 16; i++)
 	{
-
-		ss = std::to_string(TemporaryKey[i]);
-
-//		ss = std::to_string(debugger->vm->Key[i]);
+		ltoa(TemporaryKey[i], tmp, 10);
 
 		if (TemporaryKey[i] == 1)
-//		if (debugger->vm->Key[i] == 1)
 		{
 			ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(255, 0, 0, 255));
 		}
 
-		ImGui::Button(ss.c_str(), ImVec2(50, 50));
+		ImGui::Button(tmp, ImVec2(50, 50));
 
 		if (TemporaryKey[i] == 1)
-//		if (debugger->vm->Key[i] == 1)
 		{
 			ImGui::PopStyleColor();
 		}
