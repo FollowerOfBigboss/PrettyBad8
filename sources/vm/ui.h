@@ -23,10 +23,17 @@ namespace EmuUi
 	extern bool RomLoaded;
 	extern CRenderQuads drquads;
 
+	extern bool ShowSettings;
+
+	extern bool Vsync;
+
 	void Init();
 	void DrawMenuBar();
 	void DrawDebuggerStuf();
-	void EmuLoop();
+	void DrawSettingsWindow(bool* open);
 
+	void DrawOtherWindows();
+
+	void EmuLoop();
 	void EmuDraw();
 }

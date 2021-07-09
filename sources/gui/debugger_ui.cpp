@@ -81,7 +81,7 @@ void DebuggerUi::ApplyChanged()
 
 }
 
-void DebuggerUi::DebuggerStatus()
+void DebuggerUi::DrawDebuggerStatus()
 {
 	int status = debugger->get_status();
 	std::string str_status = debugger->get_status_str();
@@ -398,9 +398,9 @@ void DebuggerUi::GetDisassembly()
 	}
 }
 
-void DebuggerUi::DrawGraphicsDebugger()
+void DebuggerUi::DrawGraphicsDebugger(bool* open)
 {
-	ImGui::Begin("Graphics debugger");
+	ImGui::Begin("Graphics debugger", open);
 	std::string tmp;
 
 	int i = 0;
@@ -421,9 +421,9 @@ void DebuggerUi::DrawGraphicsDebugger()
 	ImGui::End();
 }
 
-void DebuggerUi::DrawStack()
+void DebuggerUi::DrawStack(bool* open)
 {
-	ImGui::Begin("Stack");
+	ImGui::Begin("Stack", open);
 	std::string t;
 	char tmp[11] = { 0 };
 
@@ -442,14 +442,14 @@ void DebuggerUi::DrawStack()
 	ImGui::End();
 }
 
-void DebuggerUi::DrawKey()
+void DebuggerUi::DrawKey(bool* open)
 {
 	if (debugger->debugger_status != DebuggerStatus::debugger_pause)
 	{
 		UpdateTemporaryKey();
 	}
 
-	ImGui::Begin("Key", 0, ImGuiWindowFlags_::ImGuiWindowFlags_HorizontalScrollbar);
+	ImGui::Begin("Key", open, ImGuiWindowFlags_::ImGuiWindowFlags_HorizontalScrollbar);
 
 	char tmp[2] = { 0 };
 	ImGui::SetWindowSize(ImVec2(245, 250));
@@ -480,12 +480,12 @@ void DebuggerUi::DrawKey()
 	ImGui::End();
 }
 
-void DebuggerUi::DrawCpuDebugger()
+void DebuggerUi::DrawCpuDebugger(bool* open)
 {
 	UpdateDebuggerTemporaryValues();
 
 
-	ImGui::Begin("CPU Debugger", 0, ImGuiWindowFlags_::ImGuiWindowFlags_MenuBar);
+	ImGui::Begin("CPU Debugger", open, ImGuiWindowFlags_::ImGuiWindowFlags_MenuBar);
 
 	if (ImGui::BeginMenuBar())
 	{

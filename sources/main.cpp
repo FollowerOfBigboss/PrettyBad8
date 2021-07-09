@@ -13,6 +13,20 @@
 void glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void glfwResizeCallback(GLFWwindow* window, int width, int height);
 
+
+void ImGuiBeginFrame()
+{
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+}
+
+void ImGuiEndFrame()
+{
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+}
+
 int KeyMap[16] =
 {
     GLFW_KEY_1,
@@ -74,20 +88,18 @@ int main()
 
     while (!glfwWindowShouldClose(window))
     {
-        glfwPollEvents();
-
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
+        ImGuiBeginFrame();
 
         EmuUi::EmuDraw();
         ImGui::ShowDemoWindow();
-        ImGui::Render();
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        
+        ImGuiEndFrame();
+        
         glfwSwapBuffers(window);
+        glfwPollEvents();
 
     }
 

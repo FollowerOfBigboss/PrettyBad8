@@ -1,4 +1,5 @@
 #include "ui.h"
+#include <GLFW/glfw3.h>
 
 namespace EmuUi
 {
@@ -15,6 +16,8 @@ namespace EmuUi
 	bool ShouldDrawMenuBar = true;
 	bool RomLoaded = false;
 	bool DrawFile = false;
+	bool ShowSettings = false;
+	bool Vsync = true;
 }
 
 
@@ -54,6 +57,7 @@ void EmuUi::DrawMenuBar()
 
 			if (ImGui::BeginMenu("Settings"))
 			{
+				ImGui::MenuItem("Settings", 0, &ShowSettings);
 				ImGui::EndMenu();
 			}
 
@@ -66,7 +70,7 @@ void EmuUi::DrawMenuBar()
  				ImGui::EndMenu();
  			}
 
-			DbgUi.DebuggerStatus();
+			DbgUi.DrawDebuggerStatus();
 			ImGui::EndMainMenuBar();
 		}
 
@@ -78,44 +82,39 @@ void EmuUi::DrawDebuggerStuf()
 {
 	if (ShowGraphicsDebugger)
 	{
-		DbgUi.DrawGraphicsDebugger();
+		DbgUi.DrawGraphicsDebugger(&ShowGraphicsDebugger);
 	}
 
 	if (ShowStackView)
  	{
-		DbgUi.DrawStack();
+		DbgUi.DrawStack(&ShowStackView);
 	}
 
 	if (ShowKeyView)
 	{
-		DbgUi.DrawKey();
+		DbgUi.DrawKey(&ShowKeyView);
 	}
 
 	if (ShowCpuDebugger)
 	{
-		DbgUi.DrawCpuDebugger();
+		DbgUi.DrawCpuDebugger(&ShowCpuDebugger);
 	}
 
 }
 
-void EmuUi::EmuLoop()
+void EmuUi::DrawSettingsWindow(bool* open)
 {
-	if ( RomLoaded && (ShowCpuDebugger == true || ShowGraphicsDebugger == true || ShowKeyView == true || ShowStackView == true) )
+	ImGui::Begin("Settings", open);
+
+	if (ImGui::Checkbox("Vsync", &Vsync))
 	{
-		EDebugger.run();
-	}
-	else if (RomLoaded)
-	{
-		vm.run(500);
-	}
-	else
-	{
-		// std::cout << "Wait till rom loads" << "\n";
+		glfwSwapInterval((int)Vsync);
 	}
 
+	ImGui::End();
 }
 
-void EmuUi::EmuDraw()
+void EmuUi::DrawOtherWindows()
 {
 	if (DrawFile)
 	{
@@ -139,6 +138,33 @@ void EmuUi::EmuDraw()
 		}
 	}
 
+	if (ShowSettings)
+	{
+		DrawSettingsWindow(&ShowSettings);
+	}
+}
+
+void EmuUi::EmuLoop()
+{
+	if ( RomLoaded && (ShowCpuDebugger == true || ShowGraphicsDebugger == true || ShowKeyView == true || ShowStackView == true) )
+	{
+		EDebugger.run();
+	}
+	else if (RomLoaded)
+	{
+		vm.run(500);
+	}
+	else
+	{
+		// std::cout << "Wait till rom loads" << "\n";
+	}
+
+}
+
+void EmuUi::EmuDraw()
+{
+
+	DrawOtherWindows();
 	DrawMenuBar();
 	DrawDebuggerStuf();
 
