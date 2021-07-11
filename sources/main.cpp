@@ -6,7 +6,7 @@
 #include <imgui/imgui_impl_opengl3.h>
 
 #include "vm/vm.h"
-#include "vm/ui.h"
+#include "gui/ui.h"
 
 #include <iostream>
 
@@ -62,7 +62,7 @@ int main()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    window = glfwCreateWindow(640, 480, "ラストエグザイル", NULL, NULL);
+    window = glfwCreateWindow(640, 480, "PrettyBad8", NULL, NULL);
     if (!window)
     {
         glfwTerminate();
@@ -94,8 +94,10 @@ int main()
         ImGuiBeginFrame();
 
         EmuUi::EmuDraw();
+
+#ifdef PDEBUG
         ImGui::ShowDemoWindow();
-        
+#endif
         ImGuiEndFrame();
         
         glfwSwapBuffers(window);

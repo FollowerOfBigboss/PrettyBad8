@@ -1,7 +1,7 @@
 #ifndef DBGUI
 #define DBGUI
 
-#include "../vm/debugger_n.h"
+#include "../vm/debugger.h"
 #include "imgui/imgui.h"
 
 struct InstructionInfo
@@ -13,7 +13,6 @@ struct InstructionInfo
 class DebuggerUi
 {
 public:
-
 	DebuggerUi();
 
 	inline void attach(Debugger* dbg) { debugger = dbg; }
@@ -27,8 +26,8 @@ public:
 	void DrawKey(bool* open);
 
 	void DrawDebuggerStatus();
-private:
 
+private:
 	void UpdateDebuggerTemporaryValues();
 	void UpdateTemporaryKey();
 	void ApplyChanged();

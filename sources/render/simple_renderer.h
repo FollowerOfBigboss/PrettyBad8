@@ -10,7 +10,7 @@
 #include <glm/gtx/io.hpp>
 
 #include <GLAD/glad.h>
-#include "vm.h"
+#include "../vm/vm.h"
 
 
 class CRenderQuads

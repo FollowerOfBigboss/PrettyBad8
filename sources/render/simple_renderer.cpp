@@ -1,4 +1,4 @@
-#include "draw.h"
+#include "simple_renderer.h"
 
 void CRenderQuads::init()
 {

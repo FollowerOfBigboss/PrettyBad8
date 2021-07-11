@@ -3,9 +3,9 @@
 
 // #include "debugger.h"
 
-#include "debugger_n.h"
+#include "../vm/debugger.h"
 #include "../gui/debugger_ui.h"
-#include "draw.h"
+#include "../render/simple_renderer.h"
 
 namespace EmuUi
 {

@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.20)
 project(PrettyBad8)
 
+if (debug)
+	add_compile_definitions(PDEBUG)
+endif()
+
 include_directories(3rdparty)
 
 add_subdirectory(3rdparty/glfw)
@@ -42,17 +46,18 @@ file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/ImGuiFileDialog/dirent
 
 add_executable(EmuPBad8 
 	       sources/main.cpp
-	       sources/vm/debugger.cpp
-	       sources/vm/debugger.h
-	       sources/vm/draw.h
-	       sources/vm/draw.cpp
-	       sources/vm/ui.h
-	       sources/vm/ui.cpp
-	       sources/vm/vm.cpp
-	       sources/vm/vm.h
 
-	       sources/vm/debugger_n.h
-	       sources/vm/debugger_n.cpp
+	       sources/render/simple_renderer.h
+	       sources/render/simple_renderer.cpp
+
+	       sources/gui/ui.h
+	       sources/gui/ui.cpp
+
+	       sources/vm/vm.h
+	       sources/vm/vm.cpp
+
+	       sources/vm/debugger.h
+	       sources/vm/debugger.cpp
 
 	       sources/gui/debugger_ui.h
 	       sources/gui/debugger_ui.cpp

@@ -1,662 +1,142 @@
 #include "debugger.h"
 
-
-void DebuggerO::attach(VM& vmInfo)
+void Debugger::run()
 {
-    vm_ptr = &vmInfo;
-}
+	// this flag set by outside
+	if (debugger_status == DebuggerStatus::debugger_run_after_breakpoint_hit)
+	{
+		vm->cycle();
 
-void DebuggerO::deattach()
-{
-    vm_ptr = nullptr;
+		// Expired one time only ticket
+		debugger_status = DebuggerStatus::debugger_running;
+	}
 
-    insData.clear();
-    
-    memset(&TemporaryV, 0, sizeof(TemporaryV));
-    TemporaryI = 0;
-    TemporaryST = 0;
-    TemporaryDT = 0;
-    TemporaryPC = 0;
-    TemporarySP = 0;
-    memset(&TemporaryStack, 0, sizeof(TemporaryStack));
+	if (debugger_status == DebuggerStatus::debugger_running)
+	{
+		int a = hztocycles(500);
 
-
-    Pause = false;
-    BreakpointContinue = false;
-    BreakPointHit = false;
-
-    StopAfterReset = false;
-}
-
-void DebuggerO::SingleStep()
-{
-    bool IsItCallOpcode = (((vm_ptr->memory[vm_ptr->PC] << 8 | vm_ptr->memory[vm_ptr->PC + 1]) & 0xF000) == 0x2000);
-
-    bool RunUntilReturn = true;
-    int CyclesThatNeedsToBeExecuted = 0;
-
-    int FakePC = ((vm_ptr->memory[vm_ptr->PC] << 8 | vm_ptr->memory[vm_ptr->PC + 1]) & 0x0FFF);
-
-    if (IsItCallOpcode == true)
-    {
-        while (RunUntilReturn)
-        {
-            if (((vm_ptr->memory[FakePC] << 8 | vm_ptr->memory[FakePC + 1]) & 0xF0FF) == 0x00EE)
-            {
-                CyclesThatNeedsToBeExecuted++;
-                RunUntilReturn = false;
-                break;
-            }
-            FakePC += 2;
-            CyclesThatNeedsToBeExecuted++;
-        }
-        CyclesThatNeedsToBeExecuted++;
-
-
-        for (int i = 0; i < CyclesThatNeedsToBeExecuted; i++)
-        {
-            vm_ptr->cycle();
-        }
-
-        return;
-    }
-
-    vm_ptr->cycle();
-}
-
-void DebuggerO::StepInto()
-{
-    vm_ptr->cycle();
-}
-
-void DebuggerO::RunUntilBreakpoint()
-{
-    if (Pause == false)
-    {
-        int a = hztocycles(500);
-        bool sBreak = false;
-
-        for (int i = 0; i < a; i++)
-        {
-
-            for (int i = 0; i < insData.size(); i++)
-            {
-                if (vm_ptr->PC == std::stoi(insData[i].address) && insData[i].selected == true)
-                {
-
-                    sBreak = true;
-                    BreakPointHit = true;
-
-                    if (BreakpointContinue)
-                    {
-                        sBreak = false;
-                    }
-                    else
-                    {
-                        sBreak = true;
-                        Pause = true;
-                    }
-
-                }
-
-            }
-            if (sBreak == false)
-            {
-                vm_ptr->cycle();
-                BreakpointContinue = false;
-            }
-        }
-    }
-}
-
-void DebuggerO::GetDissassembly()
-{
-    if (insData.size() > 0)
-    {
-        for (int i = 0; i < insData.size(); i++)
-        {
-            insData[i].address = "";
-            insData[i].bytes = "";
-            insData[i].decoded_instrucction = "";
-        }
-    }
-
-    std::string tmp;
-    std::string tmp2;
-    tmp.resize(5);
-    tmp2.resize(20);
-
-    int ac = 0;
-
-    if (insData.size() == 0)
-    {
-        for (int i = 512; i < 4096; i += 2)
-        {
-            // Use them till c++20
-            snprintf(&tmp[0], tmp.size(), "%i", i);
-            snprintf(&tmp2[0], tmp2.size(), "%02x %02x", vm_ptr->memory[i], vm_ptr->memory[i + 1]);
-            insData.push_back({ tmp, tmp2, DecodeInstruction(vm_ptr->memory[i] << 8 | vm_ptr->memory[i + 1]), false });
-        }
-
-    }
-    else
-    {
-        for (int i = 512; i < 4096; i += 2)
-        {
-            snprintf(&tmp[0], tmp.size(), "%i", i);
-            snprintf(&tmp2[0], tmp2.size(), "%02x %02x", vm_ptr->memory[i], vm_ptr->memory[i + 1]);
-            insData[ac].address = tmp;
-            insData[ac].bytes = tmp2;
-            insData[ac].decoded_instrucction = DecodeInstruction(vm_ptr->memory[i] << 8 | vm_ptr->memory[i + 1]);
-            ac++;
-
-        }
-
-    }
-}
-
-void DebuggerO::GetRegisterInformations()
-{
-    for (int i = 0; i < 16; i++)
-    {
-        TemporaryV[i] = vm_ptr->V[i];
-    }
-
-    TemporaryPC = vm_ptr->PC;
-    TemporaryI = vm_ptr->I;
-    TemporaryST = vm_ptr->ST;
-    TemporaryDT = vm_ptr->DT;
-    TemporarySP = vm_ptr->SP;
+		for (int i = 0; i < a; i++)
+		{
+			if (std::find(BreakpointList.begin(), BreakpointList.end(), vm->PC) != BreakpointList.end())
+			{
+				debugger_status = DebuggerStatus::debugger_breakpoint_hit;
+			}
+			else
+			{
+				vm->cycle();
+			}
+		}
+	}
 
 }
 
-void DebuggerO::ApplyChangedInformation()
+std::string Debugger::get_status_str()
 {
-    if (Pause == true)
-    {
-        for (int i = 0; i < 16; i++)
-        {
-            if (TemporaryV[i] != vm_ptr->V[i])
-                vm_ptr->V[i] = TemporaryV[i];
-        }
-
-        if (TemporaryPC != vm_ptr->PC)
-        {
-            vm_ptr->PC = TemporaryPC;
-        }
-
-        if (TemporaryI != vm_ptr->I)
-        {
-            vm_ptr->I = TemporaryI;
-        }
-
-        if (TemporaryST != vm_ptr->ST)
-        {
-            vm_ptr->ST = TemporaryST;
-        }
-
-        if (TemporaryDT != vm_ptr->DT)
-        {
-            vm_ptr->DT = TemporaryDT;
-        }
-
-        if (TemporarySP != vm_ptr->SP)
-        {
-            vm_ptr->SP = TemporarySP;
-        }
-
-    }
-
+	switch (debugger_status)
+	{
+		case DebuggerStatus::debugger_running: return "Debugger Running";
+		case DebuggerStatus::debugger_pause: return "Debugger Pause";
+		case DebuggerStatus::debugger_breakpoint_hit: return "Debugger Breakpoint Hit";
+		case DebuggerStatus::debugger_run_after_breakpoint_hit: return "Debugger Run After Breakpoint Hit";
+		case DebuggerStatus::debugger_not_running: return "Debugger Not Running";
+		default: return "Unknown";
+	}
 }
 
-void DebuggerO::GetKeyInformation()
+uint16_t Debugger::get_value_of_register(int Register)
 {
-    if (Pause == false)
-    {
-        for (int k = 0; k < 16; k++)
-        {
-            TemporaryKey[k] = vm_ptr->Key[k];
-        }
-    }
+	if (Register > 15)
+	{
+		switch (Register)
+		{
+		case Registers::I: return vm->I;
+		case Registers::ST: return vm->ST;
+		case Registers::DT: return vm->DT;
+		case Registers::PC: return vm->PC;
+		case Registers::SP: return vm->SP;
+		}
+	}
+	else
+	{
+		return vm->V[Register];
+	}
+
+	return 21;
 }
 
-void DebuggerO::GetStackInformation()
+void Debugger::set_value_of_register(int Register, uint16_t value)
 {
-    for (int j = 0; j < 16; j++)
-    {
-        TemporaryStack[j] = vm_ptr->stack[j];
-    }
+	if (Register > 15)
+	{
+		switch (Register)
+		{
+		case Registers::I: vm->I = value; break;
+		case Registers::ST: vm->ST = (uint8_t)value; break;
+		case Registers::DT: vm->DT = (uint8_t)value; break;
+		case Registers::PC: vm->PC = value; break;
+		case Registers::SP: vm->SP = (uint8_t)value; break;
+		}
+	}
+	else
+	{
+		vm->V[Register] = (uint8_t)value;
+	}
 }
 
-void DebuggerO::HandleAndDrawDebuggerInput()
+void Debugger::SingleStep()
 {
-    if (ImGui::Button("Resume"))
-    {
-        Pause = false;
 
-        if (BreakpointContinue != true)
-            BreakpointContinue = true;
+	bool IsItCallOpcode = (((vm->memory[vm->PC] << 8 | vm->memory[vm->PC + 1]) & 0xF000) == 0x2000);
 
-    }
+	bool RunUntilReturn = true;
+	int CyclesThatNeedsToBeExecuted = 0;
 
-    ImGui::SameLine();
-    if (ImGui::Button("Pause"))
-    {
-        Pause = true;
-    }
+	int FakePC = ((vm->memory[vm->PC] << 8 | vm->memory[vm->PC + 1]) & 0x0FFF);
 
-    ImGui::SameLine();
-    if (ImGui::Button("Reset"))
-    {
-        Pause = StopAfterReset;
-        vm_ptr->reset_and_loadrom();
-    }
+	if (IsItCallOpcode == true)
+	{
+		while (RunUntilReturn)
+		{
+			if (((vm->memory[FakePC] << 8 | vm->memory[FakePC + 1]) & 0xF0FF) == 0x00EE)
+			{
+				CyclesThatNeedsToBeExecuted++;
+				RunUntilReturn = false;
+				break;
+			}
+			FakePC += 2;
+			CyclesThatNeedsToBeExecuted++;
+		}
+		CyclesThatNeedsToBeExecuted++;
 
-    ImGui::SameLine();
-    ImGui::Checkbox("Stop after reset", &StopAfterReset);
 
-    ImGui::SameLine();
-    if (ImGui::Button("Single Step"))
-    {
-        if (Pause == false)
-        {
-            Pause = true;
-        }
-        else
-        {
-            SingleStep();
-        }
-    }
+		for (int i = 0; i < CyclesThatNeedsToBeExecuted; i++)
+		{
+			vm->cycle();
+		}
 
-    ImGui::SameLine();
-    if (ImGui::Button("Step Into"))
-    {
-        if (Pause == false)
-        {
-            Pause = true;
-        }
-        else
-        {
-            StepInto();
-        }
-    }
+		return;
+	}
 
+	vm->cycle();
+
+	return;
 }
 
-void DebuggerO::DrawRegisters()
+void Debugger::AddBreakpoint(int addr)
 {
-    for (int i = 0; i < 16; i++)
-    {
-        ImGui::Text("V%i", i);
-        ImGui::SameLine();
-        ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.15f);
-        ImGui::InputInt(templabelsV[i], &TemporaryV[i], 0);
-        
-        if ( !((i + 1) % 4 == 0) )
-        {
-            ImGui::SameLine();
-        }
-
-    }
-
-    ImGui::Text("PC");
-    ImGui::SameLine();
-    ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.15f);
-    ImGui::InputInt("##TemporaryPC", &TemporaryPC, 0);
-
-    ImGui::SameLine();
-
-    ImGui::Text("I");
-    ImGui::SameLine();
-    ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.15f);
-    ImGui::InputInt("##TemporaryI", &TemporaryI, 0);
-
-    ImGui::SameLine();
-
-    ImGui::Text("ST");
-    ImGui::SameLine();
-    ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.15f);
-    ImGui::InputInt("##TemporaryST", &TemporaryST, 0);
-
-    ImGui::SameLine();
-
-    ImGui::Text("DT");
-    ImGui::SameLine();
-    ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.15f);
-    ImGui::InputInt("##TemporaryDT", &TemporaryDT, 0);
-
-    ImGui::Text("SP");
-    ImGui::SameLine();
-    ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.15f);
-    ImGui::InputInt("##TemporarySP", &TemporarySP, 0);
+	if (std::find(BreakpointList.begin(), BreakpointList.end(), addr) == BreakpointList.end())
+	{
+		BreakpointList.push_back(addr);
+	}
 }
 
-void DebuggerO::DrawDissassembly()
+void Debugger::RemoveBreakpoint(int addr)
 {
-    GetDissassembly();
-    
-    if (ImGui::BeginTable("##disassembly", 3, ImGuiTableFlags_Resizable | ImGuiTableFlags_RowBg| ImGuiTableFlags_ScrollY ))
-    {
-        ImGui::TableSetupScrollFreeze(0, 1);
-        ImGui::TableSetupColumn("Address");
-        ImGui::TableSetupColumn("Bytes");
-        ImGui::TableSetupColumn("Instruction");
-      
-        ImGui::TableHeadersRow();
-        
-        for (int i = 0; i < insData.size(); i++)
-        {
-            ImGui::TableNextRow();
-
-            if (insData[i].selected)
-            {
-                ImGui::TableSetBgColor(ImGuiTableBgTarget_::ImGuiTableBgTarget_RowBg0, IM_COL32(255, 0, 0, 255));
-            }
-
-            ImGui::TableNextColumn();
-            ImGui::Selectable(insData[i].address.c_str(), &insData[i].selected, ImGuiSelectableFlags_SpanAllColumns);
-
-            ImGui::TableNextColumn();
-            ImGui::Text(insData[i].bytes.c_str());
-
-            ImGui::TableNextColumn();
-            ImGui::Text(insData[i].decoded_instrucction.c_str());
-
-            if (vm_ptr->PC == std::stoi(insData[i].address) && Pause == true)
-            {
-                ImGui::TableSetBgColor(ImGuiTableBgTarget_::ImGuiTableBgTarget_RowBg0, IM_COL32(50, 205, 50, 255));
-            }
-        }
-
-        ImGui::EndTable();
-    }
+	for (int i = 0; i < BreakpointList.size(); i++)
+	{
+		if (BreakpointList[i] == addr)
+		{
+			BreakpointList.erase(BreakpointList.begin() + i);
+		}
+	}
 }
-
-void DebuggerO::DrawGraphicsDebugger()
-{
-    // Will enhanced and expanded
-    ImGui::Begin("Graphics debugger");
-    std::string tmp;
-
-    int i = 0;
-    while (i < 64*32)
-    {
-        for (int j = 0; j < 64; j++)
-        {
-            tmp += std::to_string((int)vm_ptr->gfx[i + j]);
-        }
-        tmp += "\n";
-        i += 64;
-    }
-
-    ImGui::Text(tmp.c_str());
-    ImGui::End();
-}
-
-void DebuggerO::DrawStack()
-{
-    ImGui::Begin("Stack");
-    std::string t;
-
-    if (ImGui::BeginListBox("##stack", ImVec2(-1, -1)))
-    {
-
-        for (int n = 15; n > -1; n--)
-        {
-
-            const bool is_selected = (item_current_idx == n);
-            t = std::to_string(TemporaryStack[n]);
-            t += "##";
-            t += std::to_string(n);
-
-            if (ImGui::Selectable(t.c_str(), is_selected))
-            {
-                item_current_idx = n;
-            }
-
-            if (is_selected)
-            {
-                ImGui::SetItemDefaultFocus();
-            }
-
-        }
-
-        ImGui::EndListBox();
-    }
-
-    ImGui::End();
-}
-
-void DebuggerO::DrawKey()
-{
-    ImGui::Begin("Key", 0, ImGuiWindowFlags_::ImGuiWindowFlags_HorizontalScrollbar);
-    std::string ss;
-    ImGui::SetWindowSize(ImVec2(245, 250));
-
-    for (int i = 0; i < 16; i++)
-     {
-
-        ss = std::to_string(TemporaryKey[i]);
-
-        if (TemporaryKey[i] == 1)
-        {
-            ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(255, 0, 0, 255));
-        }
-
-        ImGui::Button(ss.c_str(), ImVec2(50, 50));
-
-        if (TemporaryKey[i] == 1)
-        {
-            ImGui::PopStyleColor();
-        }
-
-        if ( !((i + 1) % 4 == 0) )
-        {
-              ImGui::SameLine();
-        }
-
-     }
-
-    ImGui::End();
-}
-
-std::string DebuggerO::DecodeInstruction(uint16_t opcode)
-{
-    std::string decoded = "??";
-    decoded.resize(20);
-
-    switch (opcode & 0xF000)
-    {
-    case 0x0000:
-        switch (opcode & 0x00FF)
-        {
-        case 0x00E0:
-            decoded = "CLS";
-            break;
-
-        case 0x00EE: 
-            decoded = "RET";
-            break;
-        }
-        break;
-
-    case 0x1000: 
-        snprintf(&decoded[0], decoded.size(), "JP 0x%04x", (opcode & 0x0FFF));
-        break;
-
-    case 0x2000: 
-        snprintf(&decoded[0], decoded.size(), "CALL 0x%04x", (opcode & 0x0FFF));
-        break;
-
-    case 0x3000: 
-        snprintf(&decoded[0], decoded.size(), "SE V%i, 0x%02x", ( (opcode & 0x0F00) >> 8), (opcode & 0x00FF));
-        break;
-
-    case 0x4000:
-        snprintf(&decoded[0], decoded.size(), "SNE V%i, 0x%02x", ((opcode & 0x0F00) >> 8), (opcode & 0x00FF));
-        break;
-
-    case 0x5000: 
-        snprintf(&decoded[0], decoded.size(), "SE V%i, V%i", ((opcode & 0x0F00) >> 8), ((opcode & 0x00F0) >> 4));
-        break;
-
-    case 0x6000: 
-        snprintf(&decoded[0], decoded.size(), "LD V%i, 0x%02x", ((opcode & 0x0F00) >> 8), (opcode & 0x00FF));
-        break;
-
-    case 0x7000: 
-        snprintf(&decoded[0], decoded.size(), "ADD V%i, 0x%02x", ((opcode & 0x0F00) >> 8), (opcode & 0x00FF));
-        break;
-
-    case 0x8000:
-        switch (opcode & 0x000F)
-        {
-            case 0x0000: 
-                snprintf(&decoded[0], decoded.size(), "LD V%i, V%i", ((opcode & 0x0F00) >> 8), ((opcode & 0x00F0) >> 4));
-                break;
-
-            case 0x0001: 
-                snprintf(&decoded[0], decoded.size(), "OR V%i, V%i", ((opcode & 0x0F00) >> 8), ((opcode & 0x00F0) >> 4));
-                break;
-
-            case 0x0002: 
-                snprintf(&decoded[0], decoded.size(), "AND V%i, V%i", ((opcode & 0x0F00) >> 8), ((opcode & 0x00F0) >> 4));
-                break;
-
-            case 0x0003: 
-                snprintf(&decoded[0], decoded.size(), "XOR V%i, V%i", ((opcode & 0x0F00) >> 8), ((opcode & 0x00F0) >> 4));
-                break;
-
-            case 0x0004: 
-                snprintf(&decoded[0], decoded.size(), "ADD V%i, V%i", ((opcode & 0x0F00) >> 8), ((opcode & 0x00F0) >> 4));
-                break;
-
-            case 0x0005:
-                snprintf(&decoded[0], decoded.size(), "SUB V%i, V%i", ((opcode & 0x0F00) >> 8), ((opcode & 0x00F0) >> 4));
-                break;
-
-            case 0x0006:
-                snprintf(&decoded[0], decoded.size(), "SHR V%i {, V%i}", ((opcode & 0x0F00) >> 8), ((opcode & 0x00F0) >> 4));
-                break;
-
-            case 0x0007:
-                snprintf(&decoded[0], decoded.size(), "SUBN V%i, V%i}", ((opcode & 0x0F00) >> 8), ((opcode & 0x00F0) >> 4));
-                break;
-
-            case 0x000E:
-                snprintf(&decoded[0], decoded.size(), "SHL V%i {, V%i}", ((opcode & 0x0F00) >> 8), ((opcode & 0x00F0) >> 4));
-                break;
-        }
-        break;
-
-    case 0x9000:
-        snprintf(&decoded[0], decoded.size(), "SNE V%i, V%i", ((opcode & 0x0F00) >> 8), ((opcode & 0x00F0) >> 4));
-        break;
-
-    case 0xA000:
-        snprintf(&decoded[0], decoded.size(), "LD I, 0x%04x", (opcode & 0x0FFF));
-        break;
-
-    case 0xB000: 
-        snprintf(&decoded[0], decoded.size(), "JP V0, 0x%04x", (opcode & 0x0FFF));
-        break;
-
-    case 0xC000:
-        snprintf(&decoded[0], decoded.size(), "RND V%i, 0x%02x", ((opcode & 0x0F00) >> 8), (opcode & 0x00FF));
-        break;
-
-    case 0xD000:
-        snprintf(&decoded[0], decoded.size(), "DRW V%i, V%i, %i", ((opcode & 0x0F00) >> 8), ((opcode & 0x00F0) >> 4), (opcode & 0x000F));
-        break;
-
-    case 0xE000:
-        switch (opcode & 0x00FF)
-        {
-            case 0x009E: 
-                snprintf(&decoded[0], decoded.size(), "SKP V%i", ((opcode & 0x0F00) >> 8));
-                break;
-
-            case 0x00A1: 
-                snprintf(&decoded[0], decoded.size(), "SKNP V%i", ((opcode & 0x0F00) >> 8));
-                break;
-        }
-        break;
-
-    case 0xF000:
-        switch (opcode & 0x00FF)
-        {
-            case 0x0007:
-                snprintf(&decoded[0], decoded.size(), "LD V%i, DT", ((opcode & 0x0F00) >> 8));
-                break;
-            
-            case 0x000A: 
-                snprintf(&decoded[0], decoded.size(), "LD V%i, K", ((opcode & 0x0F00) >> 8));
-                break;
-
-            case 0x0015:
-                snprintf(&decoded[0], decoded.size(), "LD DT, V%i", ((opcode & 0x0F00) >> 8));
-                break;
-
-            case 0x0018:
-                snprintf(&decoded[0], decoded.size(), "LD ST, V%i", ((opcode & 0x0F00) >> 8));
-                break;
-
-            case 0x001E:
-                snprintf(&decoded[0], decoded.size(), "ADD I, V%i", ((opcode & 0x0F00) >> 8));
-                break;
-
-            case 0x0029:
-                snprintf(&decoded[0], decoded.size(), "LD F, V%i", ((opcode & 0x0F00) >> 8));
-                break;
-
-            case 0x0033:
-                snprintf(&decoded[0], decoded.size(), "LD B, V%i", ((opcode & 0x0F00) >> 8));
-                break;
-
-            case 0x0055:
-                snprintf(&decoded[0], decoded.size(), "LD [I], V%i", ((opcode & 0x0F00) >> 8));
-                break;
-
-            case 0x0065:
-                snprintf(&decoded[0], decoded.size(), "LD V%i, [I]", ((opcode & 0x0F00) >> 8));
-                break;
-        }
-        break;
-    }
-
-    return decoded;
-}
-
-
-/*
-*
-static int MyCallback(ImGuiInputTextCallbackData* data)
-{
-    if (data->EventFlag == ImGuiInputTextFlags_CallbackEdit)
-    {
-        memcpy(data->UserData, data->Buf, data->BufSize);
-    }
-    return 0;
-}
-
-
-std::string t;
-
-	std::string tt[16];
-
-	char b1[50] = { 0 };
-	char b2[50] = { 0 };
-	char b3[50] = { 0 };
-
-	int VK[16] = { 0 };
-
-    static char temp[10];
-    for (int i = 0; i < 16; i++)
-    {
-        snprintf(temp, 10, "##V%i", i);
-        ImGui::Text("V%i", i);
-        ImGui::SameLine();
-        ImGui::InputText(temp, &tt[i][0], tt[i].size(), ImGuiInputTextFlags_CallbackEdit, MyCallback, (void*)&tt[i][0]);
-    }
-
-*/

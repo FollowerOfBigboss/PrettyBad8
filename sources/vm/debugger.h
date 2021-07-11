@@ -1,84 +1,76 @@
-#include <vector>
+#ifndef N_DBG
+#define N_DBG
 
 #include "vm.h"
+#include <vector>
+#include <algorithm>
 
-#include "imgui/imgui.h"
-
-#ifndef EMU_DEBUGGER
-#define EMU_DEBUGGER
- 
-struct InstructionData
+enum DebuggerStatus
 {
-	std::string address;
-	std::string bytes;
-	std::string decoded_instrucction;
-	bool selected;
+	debugger_running = 0,
+	debugger_pause,
+	debugger_breakpoint_hit,
+	debugger_run_after_breakpoint_hit,
+	debugger_not_running,
+
+	debugger_attached, // reserved
+	debugger_not_attached // reserved
 };
 
-class DebuggerO
+enum Registers
+{
+	V0 = 0,
+	V1,
+	V2,
+	V3,
+	V4,
+	V5,
+	V6,
+	V7,
+	V8,
+	V9,
+	V10,
+	V11,
+	V12,
+	V13,
+	V14,
+	V15,
+	I,
+	ST,
+	DT,
+	PC,
+	SP
+};
+
+class Debugger
 {
 public:
+	inline void attach(VM* vmptr) { vm = vmptr; }
+	inline void deattach() { vm = nullptr; }
+	
+	void run();
+	inline void reset() { vm->reset_and_loadrom(); }
 
-// Main functions which responsible for provide connection to virtual machine
-	void attach(VM& vmInfo);
-	void deattach();
 
-// Operations
+	inline int get_status() { return debugger_status; }
+	inline void set_status(int status) { debugger_status = status; }
+	std::string get_status_str();
+
+	uint16_t get_value_of_register(int Register);
+	void set_value_of_register(int Register, uint16_t value);
+	inline uint8_t get_value_from_memory(uint16_t address) { return vm->memory[address]; }
+
+
 	void SingleStep();
-	void StepInto();
-	void RunUntilBreakpoint();
+	inline void StepInto() { vm->cycle(); }
 
-// Information
-	void GetDissassembly();
-	void GetRegisterInformations();
-	void ApplyChangedInformation();
+	void AddBreakpoint(int addr);
+	void RemoveBreakpoint(int addr);
+	
+	std::vector<int> BreakpointList;
+	int debugger_status = DebuggerStatus::debugger_not_running;
 
-	void GetKeyInformation();
-	void GetStackInformation();
-
-// Draw
-	void HandleAndDrawDebuggerInput();
-	void DrawRegisters();
-	void DrawDissassembly();
-	void DrawGraphicsDebugger();
-	void DrawStack();
-	void DrawKey();
-	std::string DecodeInstruction(uint16_t opcode);
-
-private:
-	// Debugger status
-	bool Pause = false;
-	bool BreakpointContinue = false;
-	bool BreakPointHit = false;
-
-	// Specifier for reset
-	bool StopAfterReset = false;
-
-	// Pointer for our vm
-	VM* vm_ptr = nullptr;
-
-	// Instruction data
-	std::vector<InstructionData> insData;
-
-	// Temporary variables which keeps last state of debugger
-	int TemporaryV[16] = { 0 };
-	int TemporaryI = 0;
-	int TemporaryST = 0;
-	int TemporaryDT = 0;
-	int TemporaryPC = 0;
-	int TemporarySP = 0;
-	int TemporaryStack[16] = { 0 };
-	int TemporaryKey[16] = { 0 };
-
-	// ImGui  useless vars
-	int item_current_idx = 0;
-	const char* templabelsV[16] = 
-	{ 
-		"##V0", "##V1", "##V2", "##V3", "##V4", "##V5",
-		"##V6", "##V7", "##V8", "##V9", "##V10", "##V11",
-		"##V12", "##V13", "##V14", "##V15" 
-	};
-
+	VM* vm;
 };
 
 #endif
