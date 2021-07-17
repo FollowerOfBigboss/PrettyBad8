@@ -1,34 +1,25 @@
 #include "ui.h"
 #include <GLFW/glfw3.h>
 
-namespace EmuUi
+void Emu::Init()
 {
-	Debugger EDebugger;
-	DebuggerUi DbgUi;
-	VM vm;
+	ShowCpuDebugger = false;
+	ShowGraphicsDebugger = false;
+	ShowStackView = false;
+	ShowKeyView = false;
+	ShouldDrawMenuBar = true;
+	RomLoaded = false;
+	DrawFile = false;
+	ShowSettings = false;
+	Vsync = true;
 
-	CRenderQuads drquads;
+	gquads.init();
+	debugger.attach(&vm);
+	gdebugger.attach(&debugger);
 
-	bool ShowCpuDebugger = false;
-	bool ShowGraphicsDebugger = false;
-	bool ShowStackView = false;
-	bool ShowKeyView = false;
-	bool ShouldDrawMenuBar = true;
-	bool RomLoaded = false;
-	bool DrawFile = false;
-	bool ShowSettings = false;
-	bool Vsync = true;
 }
 
-
-void EmuUi::Init()
-{
-	drquads.init();
-	EDebugger.attach(&vm);
-	DbgUi.attach(&EDebugger);
-}
-
-void EmuUi::DrawMenuBar()
+void Emu::DrawMenuBar()
 {
 	if (ShouldDrawMenuBar)
 	{
@@ -42,7 +33,7 @@ void EmuUi::DrawMenuBar()
 
 				if (ImGui::MenuItem("Close", 0))
 				{
-					
+
 					if (RomLoaded == true)
 					{
 						RomLoaded = false;
@@ -61,60 +52,59 @@ void EmuUi::DrawMenuBar()
 				ImGui::EndMenu();
 			}
 
- 			if (ImGui::BeginMenu("Debug"))
- 			{
- 				ImGui::MenuItem("CPU Debugger", 0, &ShowCpuDebugger);
- 				ImGui::MenuItem("Graphics Debugger", 0, &ShowGraphicsDebugger);
- 				ImGui::MenuItem("Stack View", 0, &ShowStackView);
- 				ImGui::MenuItem("Key View", 0, &ShowKeyView);
- 				ImGui::EndMenu();
- 			}
+			if (ImGui::BeginMenu("Debug"))
+			{
+				ImGui::MenuItem("CPU Debugger", 0, &ShowCpuDebugger);
+				ImGui::MenuItem("Graphics Debugger", 0, &ShowGraphicsDebugger);
+				ImGui::MenuItem("Stack View", 0, &ShowStackView);
+				ImGui::MenuItem("Key View", 0, &ShowKeyView);
+				ImGui::EndMenu();
+			}
 
-			DbgUi.DrawDebuggerStatus();
+			gdebugger.DrawDebuggerStatus();
 			ImGui::EndMainMenuBar();
 		}
 
 	}
-
 }
 
-void EmuUi::DrawDebuggerStuf()
+
+void Emu::DrawDebuggerStuf()
 {
 	if (ShowGraphicsDebugger)
 	{
-		DbgUi.DrawGraphicsDebugger(&ShowGraphicsDebugger);
+		gdebugger.DrawGraphicsDebugger(&ShowGraphicsDebugger);
 	}
-
+	
 	if (ShowStackView)
- 	{
-		DbgUi.DrawStack(&ShowStackView);
+	{
+		gdebugger.DrawStack(&ShowStackView);
 	}
-
+	
 	if (ShowKeyView)
 	{
-		DbgUi.DrawKey(&ShowKeyView);
+		gdebugger.DrawKey(&ShowKeyView);
 	}
-
+	
 	if (ShowCpuDebugger)
 	{
-		DbgUi.DrawCpuDebugger(&ShowCpuDebugger);
-	}
-
+		gdebugger.DrawCpuDebugger(&ShowCpuDebugger);
+	}	
 }
 
-void EmuUi::DrawSettingsWindow(bool* open)
+void Emu::DrawSettingsWindow(bool* open)
 {
 	ImGui::Begin("Settings", open);
-
+	
 	if (ImGui::Checkbox("Vsync", &Vsync))
 	{
 		glfwSwapInterval((int)Vsync);
 	}
-
+	
 	ImGui::End();
 }
 
-void EmuUi::DrawOtherWindows()
+void Emu::DrawOtherWindows()
 {
 	if (DrawFile)
 	{
@@ -129,8 +119,8 @@ void EmuUi::DrawOtherWindows()
 				vm.init();
 				vm.loadrom(filePathName);
 				RomLoaded = true;
-				EDebugger.set_status(DebuggerStatus::debugger_running);
-				DbgUi.GetDisassembly();
+				debugger.set_status(DebuggerStatus::debugger_running);
+				gdebugger.GetDisassembly();
 			}
 
 			ImGuiFileDialog::Instance()->Close();
@@ -144,11 +134,11 @@ void EmuUi::DrawOtherWindows()
 	}
 }
 
-void EmuUi::EmuLoop()
+void Emu::EmuLoop()
 {
-	if ( RomLoaded && (ShowCpuDebugger == true || ShowGraphicsDebugger == true || ShowKeyView == true || ShowStackView == true) )
+	if (RomLoaded && (ShowCpuDebugger == true || ShowGraphicsDebugger == true || ShowKeyView == true || ShowStackView == true))
 	{
-		EDebugger.run();
+		debugger.run();
 	}
 	else if (RomLoaded)
 	{
@@ -158,16 +148,14 @@ void EmuUi::EmuLoop()
 	{
 		// std::cout << "Wait till rom loads" << "\n";
 	}
-
 }
 
-void EmuUi::EmuDraw()
+void Emu::EmuDraw()
 {
-
 	DrawOtherWindows();
 	DrawMenuBar();
 	DrawDebuggerStuf();
 
 	EmuLoop();
-	drquads.update(EmuUi::vm);
+	gquads.update(vm);
 }

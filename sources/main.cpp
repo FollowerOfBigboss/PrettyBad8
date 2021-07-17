@@ -50,6 +50,8 @@ int KeyMap[16] =
     GLFW_KEY_V
 };
 
+Emu emu;
+
 int main()
 {
     GLFWwindow* window;
@@ -84,7 +86,7 @@ int main()
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init();
     
-    EmuUi::Init();
+    emu.Init();
 
     while (!glfwWindowShouldClose(window))
     {
@@ -93,7 +95,7 @@ int main()
 
         ImGuiBeginFrame();
 
-        EmuUi::EmuDraw();
+        emu.EmuDraw();
 
 #ifdef PDEBUG
         ImGui::ShowDemoWindow();
@@ -117,13 +119,27 @@ void glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int 
     if (action == GLFW_PRESS)
     {
         if (key == GLFW_KEY_F10)
-            EmuUi::ShouldDrawMenuBar = !EmuUi::ShouldDrawMenuBar;
+        {
+            emu.ShouldDrawMenuBar = !emu.ShouldDrawMenuBar;
+        }
+
+        if (key == GLFW_KEY_F2)
+        {
+            // Save State
+            // emu.SaveState();
+        }
+
+        if (key == GLFW_KEY_F3)
+        {
+            // Load State
+            // emu.LoadState();
+        }
 
         for (int i = 0; i < 16; i++)
         {
             if (key == KeyMap[i])
             {
-                EmuUi::vm.Key[i] = 1;
+                emu.vm.Key[i] = 1;
             }
         }
     }
@@ -134,7 +150,7 @@ void glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int 
           {
               if (key == KeyMap[i])
               {
-                  EmuUi::vm.Key[i] = 0;
+                  emu.vm.Key[i] = 0;
               }
           }
 

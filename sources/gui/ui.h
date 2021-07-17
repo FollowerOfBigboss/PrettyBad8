@@ -1,31 +1,30 @@
 #include "imgui/imgui.h"
 #include "imgui/ImGuiFileDialog.h"
 
-// #include "debugger.h"
-
 #include "../vm/debugger.h"
 #include "../gui/debugger_ui.h"
 #include "../render/simple_renderer.h"
 
-namespace EmuUi
+struct Emu
 {
-	extern DebuggerUi DbgUi;
-	extern Debugger EDebugger;
-	extern VM vm;
 
-	extern bool ShowCpuDebugger;
-	extern bool ShowGraphicsDebugger;
-	extern bool ShowStackView;
-	extern bool ShowKeyView;
-	extern bool ShouldDrawMenuBar;
+	DebuggerUi gdebugger;
+	Debugger debugger;
+	VM vm;
 
-	extern bool DrawFile;
-	extern bool RomLoaded;
-	extern CRenderQuads drquads;
+	bool ShowCpuDebugger;
+	bool ShowGraphicsDebugger;
+	bool ShowStackView;
+	bool ShowKeyView;
+	bool ShouldDrawMenuBar;
 
-	extern bool ShowSettings;
+	bool DrawFile;
+	bool RomLoaded;
+	CRenderQuads gquads;
 
-	extern bool Vsync;
+	bool ShowSettings;
+
+	bool Vsync;
 
 	void Init();
 	void DrawMenuBar();
@@ -36,4 +35,7 @@ namespace EmuUi
 
 	void EmuLoop();
 	void EmuDraw();
-}
+
+	void SaveState();
+	void LoadState();
+};
