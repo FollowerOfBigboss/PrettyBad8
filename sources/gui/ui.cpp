@@ -1,7 +1,7 @@
 #include "ui.h"
 #include <GLFW/glfw3.h>
 
-void Emu::Init()
+void Emu::init()
 {
 	ShowCpuDebugger = false;
 	ShowGraphicsDebugger = false;
@@ -67,7 +67,6 @@ void Emu::DrawMenuBar()
 
 	}
 }
-
 
 void Emu::DrawDebuggerStuf()
 {
@@ -150,12 +149,60 @@ void Emu::EmuLoop()
 	}
 }
 
-void Emu::EmuDraw()
+void Emu::run()
 {
-	DrawOtherWindows();
 	DrawMenuBar();
+	DrawOtherWindows();
 	DrawDebuggerStuf();
 
 	EmuLoop();
 	gquads.update(vm);
 }
+
+void Emu::SaveState()
+{
+	fs = fopen("ch8state.st", "wb");
+	Sstate state;
+	state.magic = 0x63387374;
+
+	for (int i = 0; i < 16; i++)
+	{
+		state.V[i] = vm.V[i];
+		state.Key[i] = vm.Key[i];
+		state.stack[i] = vm.stack[i];
+	}
+
+	state.I = vm.I;
+	state.ST = vm.ST;
+	state.DT = vm.DT;
+	state.PC = vm.PC;
+	state.SP = vm.SP;
+	memcpy(state.gfx, vm.gfx, sizeof(state.gfx));
+
+	fwrite(&state, sizeof(state), 1, fs);
+	fclose(fs);
+}
+
+void Emu::LoadState()
+{
+	Sstate state;
+	fs = fopen("ch8state.st", "rb");
+	fread(&state, sizeof(state), 1, fs);
+
+
+	for (int i = 0; i < 16; i++)
+	{
+		vm.V[i] = state.V[i];
+		vm.Key[i] = state.Key[i];
+		vm.stack[i] = state.stack[i];
+	}
+
+	vm.I = state.I;
+	vm.ST = state.ST;
+	vm.DT = state.DT;
+	vm.PC = state.PC;
+	vm.SP = state.SP;
+	memcpy(vm.gfx, state.gfx, sizeof(state.gfx));
+	fclose(fs);
+}
+

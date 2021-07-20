@@ -86,7 +86,7 @@ int main()
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init();
     
-    emu.Init();
+    emu.init();
 
     while (!glfwWindowShouldClose(window))
     {
@@ -95,7 +95,7 @@ int main()
 
         ImGuiBeginFrame();
 
-        emu.EmuDraw();
+        emu.run();
 
 #ifdef PDEBUG
         ImGui::ShowDemoWindow();
@@ -126,13 +126,13 @@ void glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int 
         if (key == GLFW_KEY_F2)
         {
             // Save State
-            // emu.SaveState();
+            emu.SaveState();
         }
 
         if (key == GLFW_KEY_F3)
         {
             // Load State
-            // emu.LoadState();
+            emu.LoadState();
         }
 
         for (int i = 0; i < 16; i++)

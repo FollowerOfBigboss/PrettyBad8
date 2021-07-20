@@ -5,9 +5,22 @@
 #include "../gui/debugger_ui.h"
 #include "../render/simple_renderer.h"
 
+struct Sstate
+{
+	uint32_t magic;
+	uint8_t V[16];
+	uint16_t I;
+	uint8_t ST;
+	uint8_t DT;
+	uint16_t PC;
+	uint8_t SP;
+	uint8_t Key[16];
+	uint16_t stack[16];
+	uint8_t gfx[64 * 32];
+};
+
 struct Emu
 {
-
 	DebuggerUi gdebugger;
 	Debugger debugger;
 	VM vm;
@@ -23,10 +36,10 @@ struct Emu
 	CRenderQuads gquads;
 
 	bool ShowSettings;
-
 	bool Vsync;
+	FILE* fs;
 
-	void Init();
+	void init();
 	void DrawMenuBar();
 	void DrawDebuggerStuf();
 	void DrawSettingsWindow(bool* open);
@@ -34,7 +47,8 @@ struct Emu
 	void DrawOtherWindows();
 
 	void EmuLoop();
-	void EmuDraw();
+
+	void run();
 
 	void SaveState();
 	void LoadState();
