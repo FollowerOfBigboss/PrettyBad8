@@ -1,4 +1,4 @@
-#include "ui.h"
+#include "emu.h"
 #include <GLFW/glfw3.h>
 
 void Emu::init()
@@ -13,10 +13,11 @@ void Emu::init()
 	ShowSettings = false;
 	Vsync = true;
 
+	clockspeed = 500;
+	
 	gquads.init();
 	debugger.attach(&vm);
 	gdebugger.attach(&debugger);
-
 }
 
 void Emu::DrawMenuBar()
@@ -95,11 +96,38 @@ void Emu::DrawSettingsWindow(bool* open)
 {
 	ImGui::Begin("Settings", open);
 	
-	if (ImGui::Checkbox("Vsync", &Vsync))
+	if (ImGui::BeginTabBar("##Tabs"))
 	{
-		glfwSwapInterval((int)Vsync);
+		if (ImGui::BeginTabItem("General"))
+		{
+			if (ImGui::Checkbox("Vsync", &Vsync))
+			{
+				glfwSwapInterval((int)Vsync);
+			}
+
+			ImGui::Text("VM cpu speed");
+			ImGui::SameLine();
+			ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.35f);
+			ImGui::InputInt("##clockspeed", &clockspeed, 100);
+			ImGui::SameLine();
+			if (ImGui::Button("Reset"))
+			{
+				clockspeed = 500;
+			}
+
+
+			ImGui::EndTabItem();
+		}
+
+		if (ImGui::BeginTabItem("Controls"))
+		{
+			ImGui::EndTabItem();
+		}
+
+
+		ImGui::EndTabBar();
 	}
-	
+
 	ImGui::End();
 }
 
@@ -141,7 +169,7 @@ void Emu::EmuLoop()
 	}
 	else if (RomLoaded)
 	{
-		vm.run(500);
+		vm.run(clockspeed);
 	}
 	else
 	{

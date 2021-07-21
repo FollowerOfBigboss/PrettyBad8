@@ -50,17 +50,17 @@ add_executable(EmuPBad8
 	       sources/render/simple_renderer.h
 	       sources/render/simple_renderer.cpp
 
-	       sources/gui/ui.h
-	       sources/gui/ui.cpp
+	       sources/emu/emu.h
+	       sources/emu/emu.cpp
+
+	       sources/emu/debugger_ui.h
+	       sources/emu/debugger_ui.cpp
 
 	       sources/vm/vm.h
 	       sources/vm/vm.cpp
 
 	       sources/vm/debugger.h
 	       sources/vm/debugger.cpp
-
-	       sources/gui/debugger_ui.h
-	       sources/gui/debugger_ui.cpp
 )
 
 add_library(GLAD

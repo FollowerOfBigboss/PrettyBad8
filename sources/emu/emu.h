@@ -2,7 +2,7 @@
 #include "imgui/ImGuiFileDialog.h"
 
 #include "../vm/debugger.h"
-#include "../gui/debugger_ui.h"
+#include "../emu/debugger_ui.h"
 #include "../render/simple_renderer.h"
 
 struct Sstate
@@ -38,6 +38,8 @@ struct Emu
 	bool ShowSettings;
 	bool Vsync;
 	FILE* fs;
+	
+	int clockspeed;
 
 	void init();
 	void DrawMenuBar();

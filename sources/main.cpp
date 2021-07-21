@@ -6,7 +6,7 @@
 #include <imgui/imgui_impl_opengl3.h>
 
 #include "vm/vm.h"
-#include "gui/ui.h"
+#include "emu/emu.h"
 
 #include <iostream>
 
