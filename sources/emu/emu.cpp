@@ -1,6 +1,8 @@
 #include "emu.h"
 #include <GLFW/glfw3.h>
 
+#include <array>
+
 void Emu::init()
 {
 	ShowCpuDebugger = false;
@@ -18,6 +20,27 @@ void Emu::init()
 	gquads.init();
 	debugger.attach(&vm);
 	gdebugger.attach(&debugger);
+
+	keymap[0] = GLFW_KEY_1;
+	keymap[1] = GLFW_KEY_2;
+	keymap[2] = GLFW_KEY_3;
+	keymap[3] = GLFW_KEY_4;
+						  
+	keymap[4] = GLFW_KEY_Q;
+	keymap[5] = GLFW_KEY_W;
+	keymap[6] = GLFW_KEY_E;
+	keymap[7] = GLFW_KEY_R;
+						  
+	keymap[8] = GLFW_KEY_A;
+	keymap[9] = GLFW_KEY_S;
+	keymap[10] = GLFW_KEY_D;
+	keymap[11] = GLFW_KEY_F;
+						  
+	keymap[12] = GLFW_KEY_Z;
+	keymap[13] = GLFW_KEY_X;
+	keymap[14] = GLFW_KEY_C;
+	keymap[15] = GLFW_KEY_V;
+	
 }
 
 void Emu::DrawMenuBar()
@@ -121,17 +144,41 @@ void Emu::DrawSettingsWindow(bool* open)
 
 		if (ImGui::BeginTabItem("Controls"))
 		{
-			const char* items[] = { "No Controller", "Keyboard", "Controller"};
+			if (kch == true)
+			{
+				bool assignable = true;
+
+				for (int i = 0; i < 16; i++)
+				{
+					if (lastpressedkey == keymap[i] || lastpressedkey == 0)
+					{
+						assignable = false;
+					}
+				}
+
+				if (assignable == true)
+				{
+					keymap[kkep] = lastpressedkey;
+					kch = false;
+				}
+			}
+
+			std::array<std::string, 3> strarr = { "No Input", "Keyboard", "No Controller Connected" };
+			if (glfwJoystickPresent(GLFW_JOYSTICK_1) == GLFW_TRUE)
+			{
+				strarr[2] = glfwGetJoystickName(GLFW_JOYSTICK_1);
+			}
+		
 			static int item_current_idx = 0;
-			const char* combo_label = items[item_current_idx];
+			const char* combo_label = strarr[item_current_idx].c_str();
 
 			ImGui::Text("Default Input Device");
-			if (ImGui::BeginCombo("##ControllerBox", items[item_current_idx]))
+			if (ImGui::BeginCombo("##ControllerBox", strarr[item_current_idx].c_str()))
 			{
-				for (int n = 0; n < IM_ARRAYSIZE(items); n++)
+				for (int n = 0; n < strarr.size(); n++)
 				{
 					const bool is_selected = (item_current_idx == n);
-					if (ImGui::Selectable(items[n], is_selected))
+					if (ImGui::Selectable(strarr[n].c_str(), is_selected))
 						item_current_idx = n;
 
 					if (is_selected)
@@ -139,7 +186,43 @@ void Emu::DrawSettingsWindow(bool* open)
 				}
 				ImGui::EndCombo();
 			}
+
+			if (item_current_idx == 1)
+			{
+
+				for (int i = 0; i < 16; i++)
+				{
+					if (((i) % 4) == 0)
+						ImGui::NewLine();
+					else 
+						ImGui::SameLine();
+
+					if (kkep == i && kch == true)
+					{
+						if (ImGui::Button("Waiting for key press"))
+						{
+							kch = false;
+						}
+					}
+					else
+					{
+						char tmp[20] = { 0 };
+						snprintf(tmp, 20, "key %s", glfwGetKeyName(keymap[i], 0));
+						if (ImGui::Button(tmp) == true)
+						{
+							kkep = i;
+							kch = true;
+						}
+					}
+				}
+
+			}
+
 			ImGui::EndTabItem();
+		}
+		else
+		{
+			kch = false;
 		}
 
 
@@ -153,7 +236,7 @@ void Emu::DrawOtherWindows()
 {
 	if (DrawFile)
 	{
-		ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Choose File", ".ch8,.*", ".");
+		ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Choose File", ".*", ".");
 
 		if (ImGuiFileDialog::Instance()->Display("ChooseFileDlgKey"))
 		{

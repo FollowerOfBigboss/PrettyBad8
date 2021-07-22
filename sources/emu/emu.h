@@ -41,6 +41,12 @@ struct Emu
 	
 	int clockspeed;
 
+	int lastpressedkey;
+	int plast;
+	int kkep;
+	bool kch;
+
+	int keymap[16];
 
 	void init();
 	void DrawMenuBar();

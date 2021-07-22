@@ -27,29 +27,6 @@ void ImGuiEndFrame()
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
-int KeyMap[16] =
-{
-    GLFW_KEY_1,
-    GLFW_KEY_2,
-    GLFW_KEY_3,
-    GLFW_KEY_4,
-
-    GLFW_KEY_Q,
-    GLFW_KEY_W,
-    GLFW_KEY_E,
-    GLFW_KEY_R,
-
-    GLFW_KEY_A,
-    GLFW_KEY_S,
-    GLFW_KEY_D,
-    GLFW_KEY_F,
-
-    GLFW_KEY_Z,
-    GLFW_KEY_X,
-    GLFW_KEY_C,
-    GLFW_KEY_V
-};
-
 Emu emu;
 
 int main()
@@ -118,6 +95,7 @@ void glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int 
 {
     if (action == GLFW_PRESS)
     {
+        emu.lastpressedkey = key;
         if (key == GLFW_KEY_F10)
         {
             emu.ShouldDrawMenuBar = !emu.ShouldDrawMenuBar;
@@ -137,10 +115,10 @@ void glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int 
 
         for (int i = 0; i < 16; i++)
         {
-            if (key == KeyMap[i])
-            {
-                emu.vm.Key[i] = 1;
-            }
+           if (key == emu.keymap[i])
+           {
+               emu.vm.Key[i] = 1;
+           }
         }
     }
 
@@ -148,7 +126,7 @@ void glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int 
     {
           for (int i = 0; i < 16; i++)
           {
-              if (key == KeyMap[i])
+              if (key == emu.keymap[i])
               {
                   emu.vm.Key[i] = 0;
               }
