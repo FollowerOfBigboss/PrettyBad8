@@ -18,7 +18,7 @@ public:
 	inline void attach(Debugger* dbg) { debugger = dbg; }
 	inline void deattach(Debugger* dbg) { debugger = nullptr; }
 
-	void GetDisassembly();
+	void UpdateDisassembly();
 
 	void DrawCpuDebugger(bool* open);
 	void DrawGraphicsDebugger(bool* open);

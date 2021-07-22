@@ -12,9 +12,6 @@ enum DebuggerStatus
 	debugger_breakpoint_hit,
 	debugger_run_after_breakpoint_hit,
 	debugger_not_running,
-
-	debugger_attached, // reserved
-	debugger_not_attached // reserved
 };
 
 enum Registers

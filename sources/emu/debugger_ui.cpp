@@ -105,6 +105,10 @@ void DebuggerUi::DrawDebuggerStatus()
 	case DebuggerStatus::debugger_not_running:
 		ColorVec = ImVec4(1.000f, 1.000f, 0.000f, 1.0f);
 		break;
+
+	default:
+		ColorVec = ImVec4(1.000f, 1.000f, 0.000f, 1.0f);
+		break;
 	}
 
 	ImGui::TextColored(ColorVec, "Debugger Status: %s", str_status.c_str());
@@ -390,7 +394,7 @@ InstructionInfo DebuggerUi::GetInstructionInfo(int address)
 	return {tmp, decoded};
 }
 
-void DebuggerUi::GetDisassembly()
+void DebuggerUi::UpdateDisassembly()
 {
 	for (int i = 0; i < 1793; i++)
 	{
@@ -575,6 +579,7 @@ void DebuggerUi::DrawCpuDebugger(bool* open)
 			if (debugger->debugger_status != DebuggerStatus::debugger_running)
 			{
 				debugger->SingleStep();
+				UpdateDisassembly();
 				UpdateDebuggerTemporaryValues();
 				UpdateTemporaryKey();
 			}
@@ -593,6 +598,7 @@ void DebuggerUi::DrawCpuDebugger(bool* open)
 		if (debugger->debugger_status != DebuggerStatus::debugger_running)
 		{
 			debugger->StepInto();
+			UpdateDisassembly();
 			UpdateDebuggerTemporaryValues();
 			UpdateTemporaryKey();
 		}

@@ -121,6 +121,24 @@ void Emu::DrawSettingsWindow(bool* open)
 
 		if (ImGui::BeginTabItem("Controls"))
 		{
+			const char* items[] = { "No Controller", "Keyboard", "Controller"};
+			static int item_current_idx = 0;
+			const char* combo_label = items[item_current_idx];
+
+			ImGui::Text("Default Input Device");
+			if (ImGui::BeginCombo("##ControllerBox", items[item_current_idx]))
+			{
+				for (int n = 0; n < IM_ARRAYSIZE(items); n++)
+				{
+					const bool is_selected = (item_current_idx == n);
+					if (ImGui::Selectable(items[n], is_selected))
+						item_current_idx = n;
+
+					if (is_selected)
+						ImGui::SetItemDefaultFocus();
+				}
+				ImGui::EndCombo();
+			}
 			ImGui::EndTabItem();
 		}
 
@@ -146,8 +164,7 @@ void Emu::DrawOtherWindows()
 				vm.init();
 				vm.loadrom(filePathName);
 				RomLoaded = true;
-				debugger.set_status(DebuggerStatus::debugger_running);
-				gdebugger.GetDisassembly();
+				gdebugger.UpdateDisassembly();
 			}
 
 			ImGuiFileDialog::Instance()->Close();
@@ -161,24 +178,32 @@ void Emu::DrawOtherWindows()
 	}
 }
 
+void Emu::DecideDebuggerStatus()
+{
+	if (debugger.debugger_status == DebuggerStatus::debugger_pause || debugger.debugger_status == DebuggerStatus::debugger_breakpoint_hit)
+		return;
+
+	if (RomLoaded == true && (ShowCpuDebugger == true || ShowGraphicsDebugger == true || ShowKeyView == true || ShowStackView == true))
+		debugger.debugger_status = DebuggerStatus::debugger_running;
+	else
+		debugger.debugger_status = DebuggerStatus::debugger_not_running;
+}
+
 void Emu::EmuLoop()
 {
-	if (RomLoaded && (ShowCpuDebugger == true || ShowGraphicsDebugger == true || ShowKeyView == true || ShowStackView == true))
+	if (debugger.debugger_status != DebuggerStatus::debugger_not_running)
 	{
 		debugger.run();
 	}
-	else if (RomLoaded)
-	{
-		vm.run(clockspeed);
-	}
 	else
 	{
-		// std::cout << "Wait till rom loads" << "\n";
+		vm.run(clockspeed);
 	}
 }
 
 void Emu::run()
 {
+	DecideDebuggerStatus();
 	DrawMenuBar();
 	DrawOtherWindows();
 	DrawDebuggerStuf();

@@ -41,12 +41,15 @@ struct Emu
 	
 	int clockspeed;
 
+
 	void init();
 	void DrawMenuBar();
 	void DrawDebuggerStuf();
 	void DrawSettingsWindow(bool* open);
 
 	void DrawOtherWindows();
+
+	void DecideDebuggerStatus();
 
 	void EmuLoop();
 
