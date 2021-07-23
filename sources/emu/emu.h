@@ -5,9 +5,12 @@
 #include "../emu/debugger_ui.h"
 #include "../render/simple_renderer.h"
 
+#include <array>
+
 struct Sstate
 {
 	uint32_t magic;
+	// uint8_t compression; // Reserved for future use
 	uint8_t V[16];
 	uint16_t I;
 	uint8_t ST;
@@ -42,11 +45,10 @@ struct Emu
 	int clockspeed;
 
 	int lastpressedkey;
-	int plast;
 	int kkep;
 	bool kch;
 
-	int keymap[16];
+	std::array<int, 16> keymap;
 
 	void init();
 	void DrawMenuBar();

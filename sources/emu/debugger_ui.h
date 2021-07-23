@@ -34,6 +34,7 @@ private:
 
 	void DrawDisassembly();
 	void DrawBreakPointList();
+	void DrawAboutDialog();
 
 	InstructionInfo GetInstructionInfo(int address);
 
@@ -48,10 +49,11 @@ private:
 	int TemporarySP;
 	int TemporaryKey[16];
 
-	bool bStopAfterReset = false;
-	bool bShowDisassembler = true;
-	bool bShowBreakpointList = false;
-	bool track_pc = false;
+	bool bStopAfterReset;
+	bool bShowDisassembler;
+	bool bShowBreakpointList;
+	bool bShowAbout;
+	bool track_pc;
 		
 	std::vector<InstructionInfo> ininfo;
 	bool selected[1792];

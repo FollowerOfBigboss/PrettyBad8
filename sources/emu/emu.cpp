@@ -54,7 +54,6 @@ void Emu::DrawMenuBar()
 			{
 				ImGui::MenuItem("Open", 0, &DrawFile);
 
-
 				if (ImGui::MenuItem("Close", 0))
 				{
 
@@ -64,6 +63,12 @@ void Emu::DrawMenuBar()
 						vm.reset();
 					}
 
+				}
+
+				if (ImGui::MenuItem("Exit"))
+				{
+					// Don't care about deconstruction of emulator exit immediatly
+					exit(0);
 				}
 
 				ImGui::EndMenu();
@@ -274,11 +279,11 @@ void Emu::DecideDebuggerStatus()
 
 void Emu::EmuLoop()
 {
-	if (debugger.debugger_status != DebuggerStatus::debugger_not_running)
+	if (debugger.debugger_status != DebuggerStatus::debugger_not_running && RomLoaded == true)
 	{
 		debugger.run();
 	}
-	else
+	else if (RomLoaded == true)
 	{
 		vm.run(clockspeed);
 	}

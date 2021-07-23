@@ -132,7 +132,6 @@ void VM::reset()
 	this->SP = 0;
 
 	memcpy(this->memory, &vm_font, sizeof(vm_font));
-//	loadrom(lrom);
 }
 
 void VM::reset_and_loadrom()

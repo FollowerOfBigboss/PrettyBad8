@@ -14,8 +14,13 @@ DebuggerUi::DebuggerUi()
 	TemporaryST = 0;
 	TemporaryDT = 0;
 	TemporarySP = 0;
-}
 
+	bStopAfterReset = false;
+	bShowDisassembler = true;
+	bShowBreakpointList = false;
+	bShowAbout = false;
+	track_pc = false;
+}
 
 void DebuggerUi::UpdateDebuggerTemporaryValues()
 {
@@ -183,7 +188,7 @@ void DebuggerUi::DrawDisassembly()
 
 void DebuggerUi::DrawBreakPointList()
 {
-	ImGui::Begin("BreakPoint List");
+	ImGui::Begin("BreakPoint List", &bShowBreakpointList);
 
 	if (ImGui::BeginTable("##BreakpointList", 1, (ImGuiTableFlags_Resizable | ImGuiTableFlags_ScrollY) &  ~ImGuiTableFlags_::ImGuiTableFlags_RowBg))
 	{
@@ -211,6 +216,18 @@ void DebuggerUi::DrawBreakPointList()
 		clipper.End();
 		ImGui::EndTable();
 	}
+	ImGui::End();
+}
+
+void DebuggerUi::DrawAboutDialog()
+{
+	ImGui::Begin("About", &bShowAbout);
+
+	ImGui::Text(R"(This debugger is simple.
+It can handle some basic operations like breakpoint add/remove,
+single step/into and register value changing. 
+In future i want to expand features of debugger)");
+
 	ImGui::End();
 }
 
@@ -509,6 +526,7 @@ void DebuggerUi::DrawCpuDebugger(bool* open)
 
 		if (ImGui::BeginMenu("Help"))
 		{
+			ImGui::MenuItem("About", 0, &bShowAbout);
 			ImGui::EndMenu();
 		}
 
@@ -662,6 +680,10 @@ void DebuggerUi::DrawCpuDebugger(bool* open)
 		DrawBreakPointList();
 	}
 
+	if (bShowAbout == true)
+	{
+		DrawAboutDialog();
+	}
 
 	ApplyChanged();
 
