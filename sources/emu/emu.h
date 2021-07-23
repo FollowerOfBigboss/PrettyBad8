@@ -63,6 +63,10 @@ struct Emu
 
 	void run();
 
+
+	void presskey(int key);
+	void releasekey(int key);
+
 	void SaveState();
 	void LoadState();
 };

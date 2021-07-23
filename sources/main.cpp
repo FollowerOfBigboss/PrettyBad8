@@ -113,25 +113,12 @@ void glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int 
             emu.LoadState();
         }
 
-        for (int i = 0; i < 16; i++)
-        {
-           if (key == emu.keymap[i])
-           {
-               emu.vm.Key[i] = 1;
-           }
-        }
+        emu.presskey(key);
     }
 
     if (action == GLFW_RELEASE)
     {
-          for (int i = 0; i < 16; i++)
-          {
-              if (key == emu.keymap[i])
-              {
-                  emu.vm.Key[i] = 0;
-              }
-          }
-
+        emu.releasekey(key);
     }
 }
 

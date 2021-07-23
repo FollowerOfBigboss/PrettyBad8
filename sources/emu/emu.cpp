@@ -347,3 +347,25 @@ void Emu::LoadState()
 	fclose(fs);
 }
 
+void Emu::presskey(int key)
+{
+	for (int i = 0; i < 16; i++)
+	{
+		if (key == keymap[i])
+		{
+			vm.Key[i] = 1;
+		}
+	}
+}
+
+void Emu::releasekey(int key)
+{
+	for (int i = 0; i < 16; i++)
+	{
+		if (key == keymap[i])
+		{
+			vm.Key[i] = 0;
+		}
+	}
+}
+
