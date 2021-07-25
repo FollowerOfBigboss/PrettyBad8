@@ -51,7 +51,6 @@ int main()
     glfwSetKeyCallback(window, &glfwKeyCallback);
     glfwSetWindowSizeCallback(window, &glfwResizeCallback);
     glfwMakeContextCurrent(window);
-    glfwSwapInterval(1);
     gladLoadGL();
 
     IMGUI_CHECKVERSION();
@@ -64,6 +63,7 @@ int main()
     ImGui_ImplOpenGL3_Init();
     
     emu.init();
+    glfwSwapInterval(emu.Vsync);
 
     while (!glfwWindowShouldClose(window))
     {

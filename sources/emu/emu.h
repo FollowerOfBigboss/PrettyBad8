@@ -40,7 +40,6 @@ struct Emu
 
 	bool ShowSettings;
 	bool Vsync;
-	FILE* fs;
 	
 	int clockspeed;
 
@@ -66,6 +65,8 @@ struct Emu
 
 	void presskey(int key);
 	void releasekey(int key);
+
+	void loadconfig();
 
 	void SaveState();
 	void LoadState();

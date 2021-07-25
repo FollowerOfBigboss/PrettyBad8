@@ -1,6 +1,9 @@
 #include "emu.h"
 #include <GLFW/glfw3.h>
 
+#include <iostream>
+#include <string>
+#include <sstream>
 #include <array>
 
 void Emu::init()
@@ -41,6 +44,7 @@ void Emu::init()
 	keymap[14] = GLFW_KEY_C;
 	keymap[15] = GLFW_KEY_V;
 	
+	loadconfig();
 }
 
 void Emu::DrawMenuBar()
@@ -302,7 +306,7 @@ void Emu::run()
 
 void Emu::SaveState()
 {
-	fs = fopen("ch8state.st", "wb");
+	FILE* fs = fopen("ch8state.st", "wb");
 	Sstate state;
 	state.magic = 0x63387374;
 
@@ -327,7 +331,7 @@ void Emu::SaveState()
 void Emu::LoadState()
 {
 	Sstate state;
-	fs = fopen("ch8state.st", "rb");
+	FILE* fs = fopen("ch8state.st", "rb");
 	fread(&state, sizeof(state), 1, fs);
 
 
@@ -368,4 +372,59 @@ void Emu::releasekey(int key)
 		}
 	}
 }
+
+void Emu::loadconfig()
+{
+	FILE* fs = fopen("emu.cfg", "r");
+	long fsize;
+
+	fseek(fs, 0, SEEK_END);
+	fsize = ftell(fs);
+	rewind(fs);
+
+	std::string buf("\0", fsize + 1);
+	fread(&buf[0], 1, fsize, fs);
+	fclose(fs);
+
+	std::stringstream ss(buf);
+	std::string s;
+	std::vector<std::string> sv;
+
+	while (std::getline(ss, s))
+	{
+		sv.push_back(s);
+	}
+
+
+
+	for (auto i : sv)
+	{
+		auto p1 = i.substr(0, i.find("="));
+		auto p2 = i.substr(i.find("=")+1);
+		
+		if (p1 == "vsync")
+		{
+			if (p2 == "true")
+			{
+				Vsync = true;
+			}
+
+			if (p2 == "false")
+			{
+				Vsync = false;
+			}
+		}
+
+		if (p1 == "clockspeed")
+		{
+			int cspeed = std::stoi(p2);
+			clockspeed = cspeed;
+		}
+	}
+
+}
+
+
+
+
 
