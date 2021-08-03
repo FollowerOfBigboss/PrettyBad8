@@ -61,6 +61,8 @@ add_executable(EmuPBad8
 
 	       sources/vm/debugger.h
 	       sources/vm/debugger.cpp
+		   
+		   sources/config_parser/config_parser.h
 )
 
 add_library(GLAD

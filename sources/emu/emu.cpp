@@ -6,6 +6,8 @@
 #include <sstream>
 #include <array>
 
+#include "../config_parser/config_parser.h"
+
 void Emu::init()
 {
 	ShowCpuDebugger = false;
@@ -375,53 +377,23 @@ void Emu::releasekey(int key)
 
 void Emu::loadconfig()
 {
-	FILE* fs = fopen("emu.cfg", "r");
-	long fsize;
 
+	FILE* fs = fopen("emu.cfg", "rb");
+	long fsize;
 	fseek(fs, 0, SEEK_END);
 	fsize = ftell(fs);
 	rewind(fs);
+	char* mem = (char*)malloc(fsize+1);
+	fread(mem, 1, fsize, fs);
+	mem[fsize] = '\0';
+	std::string buf = mem;
+	buf.erase(std::remove(buf.begin(), buf.end(), '\r'), buf.end());
 
-	std::string buf("\0", fsize + 1);
-	fread(&buf[0], 1, fsize, fs);
 	fclose(fs);
+	free(mem);
 
-	std::stringstream ss(buf);
-	std::string s;
-	std::vector<std::string> sv;
-
-	while (std::getline(ss, s))
-	{
-		sv.push_back(s);
-	}
-
-
-
-	for (auto i : sv)
-	{
-		auto p1 = i.substr(0, i.find("="));
-		auto p2 = i.substr(i.find("=")+1);
-		
-		if (p1 == "vsync")
-		{
-			if (p2 == "true")
-			{
-				Vsync = true;
-			}
-
-			if (p2 == "false")
-			{
-				Vsync = false;
-			}
-		}
-
-		if (p1 == "clockspeed")
-		{
-			int cspeed = std::stoi(p2);
-			clockspeed = cspeed;
-		}
-	}
-
+	Config cfg(*this);
+	cfg.ParseConfig(buf);
 }
 
 
