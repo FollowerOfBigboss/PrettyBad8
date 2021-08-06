@@ -6,8 +6,6 @@
 #include <sstream>
 #include <array>
 
-#include "../config_parser/config_parser.h"
-
 void Emu::init()
 {
 	ShowCpuDebugger = false;
@@ -217,8 +215,8 @@ void Emu::DrawSettingsWindow(bool* open)
 					}
 					else
 					{
-						char tmp[20] = { 0 };
-						snprintf(tmp, 20, "key %s", glfwGetKeyName(keymap[i], 0));
+						char tmp[3] = { 0 };
+						snprintf(tmp, 3, "%s", glfwGetKeyName(keymap[i], 0));
 						if (ImGui::Button(tmp) == true)
 						{
 							kkep = i;
@@ -236,6 +234,14 @@ void Emu::DrawSettingsWindow(bool* open)
 			kch = false;
 		}
 
+		ImGui::Dummy(ImVec2(ImGui::GetContentRegionAvail().x - 110, ImGui::GetContentRegionAvail().y - 40));
+		ImGui::Dummy(ImVec2(ImGui::GetWindowWidth() - 130, 0));
+		ImGui::SameLine();
+		
+		if (ImGui::Button("Apply", ImVec2(100, 30)))
+		{
+			cfg.WriteToConfig();
+		}
 
 		ImGui::EndTabBar();
 	}
@@ -388,12 +394,12 @@ void Emu::loadconfig()
 	mem[fsize] = '\0';
 	std::string buf = mem;
 	buf.erase(std::remove(buf.begin(), buf.end(), '\r'), buf.end());
-
 	fclose(fs);
 	free(mem);
 
-	Config cfg(*this);
-	cfg.ParseConfig(buf);
+	cfg.init(*this);
+	cfg.OpenConfig();
+	cfg.ParseConfig();
 }
 
 

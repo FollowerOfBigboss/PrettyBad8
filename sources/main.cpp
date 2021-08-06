@@ -13,7 +13,6 @@
 void glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void glfwResizeCallback(GLFWwindow* window, int width, int height);
 
-
 void ImGuiBeginFrame()
 {
     ImGui_ImplOpenGL3_NewFrame();
@@ -89,8 +88,6 @@ int main()
 
 }
 
-
-
 void glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
     if (action == GLFW_PRESS)
@@ -121,7 +118,6 @@ void glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int 
         emu.releasekey(key);
     }
 }
-
 
 void glfwResizeCallback(GLFWwindow* window, int width, int height)
 {

@@ -1,9 +1,14 @@
+#ifndef EMU
+#define EMU
+
 #include "imgui/imgui.h"
 #include "imgui/ImGuiFileDialog.h"
 
 #include "../vm/debugger.h"
 #include "../emu/debugger_ui.h"
 #include "../render/simple_renderer.h"
+
+#include "../config_parser/config_parser.h"
 
 #include <array>
 
@@ -27,6 +32,7 @@ struct Emu
 	DebuggerUi gdebugger;
 	Debugger debugger;
 	VM vm;
+	Config cfg;
 
 	bool ShowCpuDebugger;
 	bool ShowGraphicsDebugger;
@@ -71,3 +77,5 @@ struct Emu
 	void SaveState();
 	void LoadState();
 };
+
+#endif
