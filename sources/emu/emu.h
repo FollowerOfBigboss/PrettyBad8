@@ -12,6 +12,14 @@
 
 #include <array>
 
+enum EmuInput : int
+{
+	NoInput = 0,
+	Keyboard,
+	Controller
+};
+
+
 struct Sstate
 {
 	uint32_t magic;
@@ -52,6 +60,7 @@ struct Emu
 	int lastpressedkey;
 	int kkep;
 	bool kch;
+	int currinp;
 
 	std::array<int, 16> keymap;
 

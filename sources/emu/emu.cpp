@@ -19,7 +19,7 @@ void Emu::init()
 	Vsync = true;
 
 	clockspeed = 500;
-	
+	currinp = EmuInput::Keyboard;
 	gquads.init();
 	debugger.attach(&vm);
 	gdebugger.attach(&debugger);
@@ -178,17 +178,16 @@ void Emu::DrawSettingsWindow(bool* open)
 				strarr[2] = glfwGetJoystickName(GLFW_JOYSTICK_1);
 			}
 		
-			static int item_current_idx = 0;
-			const char* combo_label = strarr[item_current_idx].c_str();
+			const char* combo_label = strarr[currinp].c_str();
 
 			ImGui::Text("Default Input Device");
-			if (ImGui::BeginCombo("##ControllerBox", strarr[item_current_idx].c_str()))
+			if (ImGui::BeginCombo("##ControllerBox", strarr[currinp].c_str()))
 			{
 				for (int n = 0; n < strarr.size(); n++)
 				{
-					const bool is_selected = (item_current_idx == n);
+					const bool is_selected = (currinp == n);
 					if (ImGui::Selectable(strarr[n].c_str(), is_selected))
-						item_current_idx = n;
+						currinp = n;
 
 					if (is_selected)
 						ImGui::SetItemDefaultFocus();
@@ -196,7 +195,7 @@ void Emu::DrawSettingsWindow(bool* open)
 				ImGui::EndCombo();
 			}
 
-			if (item_current_idx == 1)
+			if (currinp == 1)
 			{
 
 				for (int i = 0; i < 16; i++)

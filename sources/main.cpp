@@ -110,12 +110,18 @@ void glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int 
             emu.LoadState();
         }
 
-        emu.presskey(key);
+        if (emu.currinp == EmuInput::Keyboard)
+        {
+            emu.presskey(key);
+        }
     }
 
     if (action == GLFW_RELEASE)
     {
-        emu.releasekey(key);
+        if (emu.currinp == EmuInput::Keyboard)
+        {
+            emu.releasekey(key);
+        }
     }
 }
 
