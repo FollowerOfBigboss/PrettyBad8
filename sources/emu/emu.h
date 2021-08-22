@@ -20,6 +20,18 @@ enum EmuInput : int
 };
 
 
+struct controlmap
+{
+	int key;
+	int maploc;
+};
+
+struct PressMode
+{
+	int keytochanged;
+	bool pressed;
+};
+
 struct Sstate
 {
 	uint32_t magic;
@@ -55,14 +67,13 @@ struct Emu
 	bool ShowSettings;
 	bool Vsync;
 	
-	int clockspeed;
-
-	int lastpressedkey;
-	int kkep;
-	bool kch;
-	int currinp;
+	int clockspeed;	
+	int CurrentInput;
 
 	std::array<int, 16> keymap;
+	std::array<controlmap, 16> contmap;
+	PressMode pmode;
+	PressMode pcont;
 
 	void init();
 	void DrawMenuBar();
@@ -80,6 +91,8 @@ struct Emu
 
 	void presskey(int key);
 	void releasekey(int key);
+
+	void handlecontroller();
 
 	void loadconfig();
 

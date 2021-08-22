@@ -18,8 +18,11 @@ void Emu::init()
 	ShowSettings = false;
 	Vsync = true;
 
+	pmode.pressed = true;
+	pcont.pressed = true;
+
 	clockspeed = 500;
-	currinp = EmuInput::Keyboard;
+	CurrentInput = EmuInput::Keyboard;
 	gquads.init();
 	debugger.attach(&vm);
 	gdebugger.attach(&debugger);
@@ -43,7 +46,8 @@ void Emu::init()
 	keymap[13] = GLFW_KEY_X;
 	keymap[14] = GLFW_KEY_C;
 	keymap[15] = GLFW_KEY_V;
-	
+
+	contmap.fill({ -1 , -1});
 	loadconfig();
 }
 
@@ -134,7 +138,7 @@ void Emu::DrawSettingsWindow(bool* open)
 		{
 			if (ImGui::Checkbox("Vsync", &Vsync))
 			{
-				glfwSwapInterval((int)Vsync);
+				glfwSwapInterval(static_cast<int>(Vsync));
 			}
 
 			ImGui::Text("VM cpu speed");
@@ -153,41 +157,22 @@ void Emu::DrawSettingsWindow(bool* open)
 
 		if (ImGui::BeginTabItem("Controls"))
 		{
-			if (kch == true)
-			{
-				bool assignable = true;
-
-				for (int i = 0; i < 16; i++)
-				{
-					if (lastpressedkey == keymap[i] || lastpressedkey == 0)
-					{
-						assignable = false;
-					}
-				}
-
-				if (assignable == true)
-				{
-					keymap[kkep] = lastpressedkey;
-					kch = false;
-				}
-			}
-
 			std::array<std::string, 3> strarr = { "No Input", "Keyboard", "No Controller Connected" };
 			if (glfwJoystickPresent(GLFW_JOYSTICK_1) == GLFW_TRUE)
 			{
 				strarr[2] = glfwGetJoystickName(GLFW_JOYSTICK_1);
 			}
 		
-			const char* combo_label = strarr[currinp].c_str();
+			const char* combo_label = strarr[CurrentInput].c_str();
 
 			ImGui::Text("Default Input Device");
-			if (ImGui::BeginCombo("##ControllerBox", strarr[currinp].c_str()))
+			if (ImGui::BeginCombo("##ControllerBox", strarr[CurrentInput].c_str()))
 			{
 				for (int n = 0; n < strarr.size(); n++)
 				{
-					const bool is_selected = (currinp == n);
+					const bool is_selected = (CurrentInput == n);
 					if (ImGui::Selectable(strarr[n].c_str(), is_selected))
-						currinp = n;
+						CurrentInput = n;
 
 					if (is_selected)
 						ImGui::SetItemDefaultFocus();
@@ -195,42 +180,82 @@ void Emu::DrawSettingsWindow(bool* open)
 				ImGui::EndCombo();
 			}
 
-			if (currinp == 1)
+			if (CurrentInput == EmuInput::Keyboard)
+			{
+				for (int i = 0; i < 16; i++)
+				{
+					if (((i) % 4) == 0)
+						ImGui::NewLine();
+					else
+						ImGui::SameLine();
+				
+					if (pmode.keytochanged == i && pmode.pressed == false)
+					{
+						if (ImGui::Button("Waiting for keypress"))
+						{
+							pmode.pressed = true;
+						}
+					}
+					else
+					{
+					 	char tmp[10] = { 0 };
+					 	snprintf(tmp, 10, "%s##%i", glfwGetKeyName(keymap[i], 0), i);
+						if (ImGui::Button(tmp))
+						{
+							pmode.pressed = false;
+							pmode.keytochanged = i;
+						}
+					}
+				}
+			}
+
+			if (CurrentInput == EmuInput::Controller)
 			{
 
 				for (int i = 0; i < 16; i++)
 				{
 					if (((i) % 4) == 0)
 						ImGui::NewLine();
-					else 
+					else
 						ImGui::SameLine();
 
-					if (kkep == i && kch == true)
+					if (pcont.keytochanged == i && pcont.pressed == false)
 					{
-						if (ImGui::Button("Waiting for key press"))
+						if (ImGui::Button("Waiting for keypress"))
 						{
-							kch = false;
+							pcont.pressed = true;
 						}
 					}
 					else
 					{
-						char tmp[3] = { 0 };
-						snprintf(tmp, 3, "%s", glfwGetKeyName(keymap[i], 0));
-						if (ImGui::Button(tmp) == true)
+						char tmp[20] = { 0 };
+						
+						if (contmap[i].key == -1)
 						{
-							kkep = i;
-							kch = true;
+							snprintf(tmp, 20, "%s##%i", "Not Mapped!", i);
+						}
+						else
+						{
+							snprintf(tmp, 20, "%i##%i", contmap[i].key, i);
+						}
+						if (ImGui::Button(tmp))
+						{
+							pcont.pressed = false;
+							pcont.keytochanged = i;
 						}
 					}
 				}
-
 			}
 
 			ImGui::EndTabItem();
 		}
 		else
 		{
-			kch = false;
+			pcont.pressed = true;
+			pcont.keytochanged = -1;
+
+			pmode.pressed = true;
+			pmode.pressed = -1;
 		}
 
 		ImGui::Dummy(ImVec2(ImGui::GetContentRegionAvail().x - 110, ImGui::GetContentRegionAvail().y - 40));
@@ -378,6 +403,40 @@ void Emu::releasekey(int key)
 			vm.Key[i] = 0;
 		}
 	}
+}
+
+void Emu::handlecontroller()
+{
+	int buttoncount;
+	const unsigned char* buttonptr = glfwGetJoystickButtons(GLFW_JOYSTICK_1, &buttoncount);
+
+	for (int i = 0; i < 16; i++)
+	{
+		if (buttonptr[i] == 1 && pcont.pressed == false)
+		{
+			contmap[pcont.keytochanged].key = i;
+			contmap[pcont.keytochanged].maploc = pcont.keytochanged;
+			pcont.pressed = true;
+			break;
+		}
+	}
+
+
+
+	for (int i = 0; i < 16; i++)
+	{
+		if (buttonptr[i] == 1)
+		{
+			for (int a = 0; a < 16; a++)
+			{
+				if (contmap[a].key == i)
+				{
+					vm.Key[contmap[a].maploc] = 1;
+				}
+			}
+		}
+	}
+		
 }
 
 void Emu::loadconfig()

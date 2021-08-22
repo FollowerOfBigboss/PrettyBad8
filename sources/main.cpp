@@ -12,6 +12,7 @@
 
 void glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void glfwResizeCallback(GLFWwindow* window, int width, int height);
+void glfwJoystickInput();
 
 void ImGuiBeginFrame()
 {
@@ -46,7 +47,6 @@ int main()
         glfwTerminate();
         return -1;
     }
-
     glfwSetKeyCallback(window, &glfwKeyCallback);
     glfwSetWindowSizeCallback(window, &glfwResizeCallback);
     glfwMakeContextCurrent(window);
@@ -70,9 +70,8 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT);
 
         ImGuiBeginFrame();
-
+        glfwJoystickInput();
         emu.run();
-
 #ifdef PDEBUG
         ImGui::ShowDemoWindow();
 #endif
@@ -92,7 +91,12 @@ void glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int 
 {
     if (action == GLFW_PRESS)
     {
-        emu.lastpressedkey = key;
+        if (emu.pmode.pressed == false)
+        {
+            emu.keymap[emu.pmode.keytochanged] = key;
+            emu.pmode.pressed = true;
+        }
+
         if (key == GLFW_KEY_F10)
         {
             emu.ShouldDrawMenuBar = !emu.ShouldDrawMenuBar;
@@ -110,7 +114,7 @@ void glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int 
             emu.LoadState();
         }
 
-        if (emu.currinp == EmuInput::Keyboard)
+        if (emu.CurrentInput == EmuInput::Keyboard)
         {
             emu.presskey(key);
         }
@@ -118,7 +122,7 @@ void glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int 
 
     if (action == GLFW_RELEASE)
     {
-        if (emu.currinp == EmuInput::Keyboard)
+        if (emu.CurrentInput == EmuInput::Keyboard)
         {
             emu.releasekey(key);
         }
@@ -128,4 +132,19 @@ void glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int 
 void glfwResizeCallback(GLFWwindow* window, int width, int height)
 {
     glViewport(0, 0, width, height);
+}
+
+void glfwJoystickInput()
+{
+    if (emu.CurrentInput == EmuInput::Controller)
+    {
+
+        if (glfwJoystickPresent(GLFW_JOYSTICK_1))
+        {
+            memset(emu.vm.Key, 0, sizeof(uint8_t) * 16);
+            emu.handlecontroller();
+
+        }
+    }
+
 }
