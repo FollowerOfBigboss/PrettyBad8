@@ -156,20 +156,20 @@ void DebuggerUi::DrawDisassembly()
 
 				ImGui::TableNextColumn();
 
-				char littlebuf[5] = { 0 };
-				ltoa(512 + (i * 2), littlebuf, 10);
+				char littlebuf[12] = { 0 };
+				int t = 512 + (i * 2);
+				snprintf(littlebuf, 12, "%i (%x)", t, t);
 				if (ImGui::Selectable(littlebuf, &selected[i], ImGuiSelectableFlags_SpanAllColumns))
-
-						{
-							if (selected[i] == false)
-							{
-								debugger->RemoveBreakpoint(512 + (i * 2));
-							}
-							else
-							{
-								debugger->AddBreakpoint(512 + (i * 2));
-							}
-						}
+				{
+					if (selected[i] == false)
+					{
+						debugger->RemoveBreakpoint(512 + (i * 2));
+					}
+					else
+					{
+						debugger->AddBreakpoint(512 + (i * 2));
+					}
+				}
 
 				ImGui::TableNextColumn();
 				ImGui::Text(ininfo[i].bytes.c_str());

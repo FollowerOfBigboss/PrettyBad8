@@ -13,21 +13,11 @@
 void glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void glfwResizeCallback(GLFWwindow* window, int width, int height);
 void glfwJoystickInput();
+void ImGuiBeginFrame();
+void ImGuiEndFrame();
 
-void ImGuiBeginFrame()
-{
-    ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplGlfw_NewFrame();
-    ImGui::NewFrame();
-}
 
-void ImGuiEndFrame()
-{
-    ImGui::Render();
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-}
-
-Emu emu;
+Emu g_Emu;
 
 int main()
 {
@@ -61,17 +51,17 @@ int main()
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init();
     
-    emu.init();
-    glfwSwapInterval(emu.Vsync);
+    g_Emu.init();
+    glfwSwapInterval(g_Emu.b_Vsync);
 
-    while (!glfwWindowShouldClose(window))
+    while (!glfwWindowShouldClose(window) && g_Emu.b_EmuRun == true)
     {
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
         ImGuiBeginFrame();
         glfwJoystickInput();
-        emu.run();
+        g_Emu.run();
 #ifdef PDEBUG
         ImGui::ShowDemoWindow();
 #endif
@@ -91,40 +81,40 @@ void glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int 
 {
     if (action == GLFW_PRESS)
     {
-        if (emu.pmode.pressed == false)
+        if (g_Emu.pmode.pressed == false)
         {
-            emu.keymap[emu.pmode.keytochanged] = key;
-            emu.pmode.pressed = true;
+            g_Emu.keymap[g_Emu.pmode.keytochanged] = key;
+            g_Emu.pmode.pressed = true;
         }
 
         if (key == GLFW_KEY_F10)
         {
-            emu.ShouldDrawMenuBar = !emu.ShouldDrawMenuBar;
+            g_Emu.b_ShouldDrawMenuBar = !g_Emu.b_ShouldDrawMenuBar;
         }
 
         if (key == GLFW_KEY_F2)
         {
             // Save State
-            emu.SaveState();
+            g_Emu.SaveState();
         }
 
         if (key == GLFW_KEY_F3)
         {
             // Load State
-            emu.LoadState();
+            g_Emu.LoadState();
         }
 
-        if (emu.CurrentInput == EmuInput::Keyboard)
+        if (g_Emu.CurrentInput == EmuInput::Keyboard)
         {
-            emu.presskey(key);
+            g_Emu.presskey(key);
         }
     }
 
     if (action == GLFW_RELEASE)
     {
-        if (emu.CurrentInput == EmuInput::Keyboard)
+        if (g_Emu.CurrentInput == EmuInput::Keyboard)
         {
-            emu.releasekey(key);
+            g_Emu.releasekey(key);
         }
     }
 }
@@ -136,15 +126,27 @@ void glfwResizeCallback(GLFWwindow* window, int width, int height)
 
 void glfwJoystickInput()
 {
-    if (emu.CurrentInput == EmuInput::Controller)
+    if (g_Emu.CurrentInput == EmuInput::Controller)
     {
 
         if (glfwJoystickPresent(GLFW_JOYSTICK_1))
         {
-            memset(emu.vm.Key, 0, sizeof(uint8_t) * 16);
-            emu.handlecontroller();
+            g_Emu.handlecontroller();
 
         }
     }
 
+}
+
+void ImGuiBeginFrame()
+{
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+}
+
+void ImGuiEndFrame()
+{
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }

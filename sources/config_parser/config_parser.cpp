@@ -105,7 +105,7 @@ void Config::WriteToConfig(const std::string& cfgFilePath)
 	FILE* fs = fopen(cfgFilePath.c_str(), "wb");
 	std::string cfgbuf;
 	cfgbuf.append("[General]\n");
-	cfgbuf.append("vsync=" + BoolToStr(pemu->Vsync) + "\n");
+	cfgbuf.append("vsync=" + BoolToStr(pemu->b_Vsync) + "\n");
 	cfgbuf.append("clockspeed=" + std::to_string(pemu->clockspeed) + "\n");
 
 	cfgbuf.append("[Controller]\n");
@@ -153,12 +153,17 @@ void GeneralParse(Config& cfg, const std::string& str)
 
 	if (p1 == "vsync")
 	{
-		cfg.pemu->Vsync = StrToBool(p2);
+		cfg.pemu->b_Vsync = StrToBool(p2);
 	}
 
 	if (p1 == "clockspeed")
 	{
 		cfg.pemu->clockspeed = atoi(p2.c_str());
+	}
+
+	if (p1 == "debug")
+	{
+		cfg.pemu->b_Debug = StrToBool(p2);
 	}
 }
 
@@ -168,16 +173,24 @@ void ControllerParse(Config& cfg, const std::string& str)
 	auto p2 = str.substr(str.find("_") + 1, 1);
 	auto p3 = str.substr(str.find("=") + 1);
 
+	constexpr std::array<int, 16> table = {
+		(int)'1', (int)'2', (int)'3', (int)'4',
+		(int)'Q', (int)'W', (int)'E', (int)'R',
+		(int)'A', (int)'S', (int)'D', (int)'F',
+		(int)'Z', (int)'X', (int)'C', (int)'V'
+	};
+
 	if (p1 == "KEY")
 	{
-		constexpr std::array<int, 16> table = {
-			(int)'1', (int)'2', (int)'3', (int)'4',
-			(int)'Q', (int)'W', (int)'E', (int)'R',
-			(int)'A', (int)'S', (int)'D', (int)'F',
-			(int)'Z', (int)'X', (int)'C', (int)'V'
-		};
-
 		auto f = std::distance(table.begin(), std::find(table.begin(), table.end(), (int)p2[0]));
 		cfg.pemu->keymap[f] = atoi(p3.c_str());
+	}
+
+	if (p1 == "GAMEPAD")
+	{
+		auto f = std::distance(table.begin(), std::find(table.begin(), table.end(), (int)p2[0]));
+		cfg.pemu->contmap[f].maploc = f;
+		cfg.pemu->contmap[f].key = atoi(p3.c_str());
+
 	}
 }

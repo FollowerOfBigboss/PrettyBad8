@@ -47,57 +47,90 @@ struct Sstate
 	uint8_t gfx[64 * 32];
 };
 
-struct Emu
+class Emu
 {
-	DebuggerUi gdebugger;
-	Debugger debugger;
+public:
+	// Indicates emulator is running or not
+	bool b_EmuRun;
+
+
+	bool b_Debug;
+
+	// VM class
 	VM vm;
-	Config cfg;
 
-	bool ShowCpuDebugger;
-	bool ShowGraphicsDebugger;
-	bool ShowStackView;
-	bool ShowKeyView;
-	bool ShouldDrawMenuBar;
-
-	bool DrawFile;
-	bool RomLoaded;
-	CRenderQuads gquads;
-
-	bool ShowSettings;
-	bool Vsync;
-	
-	int clockspeed;	
+	// Indicates current input method
 	int CurrentInput;
+	
+	// Indicates state of vsync
+	bool b_Vsync;
+
+	// Another ImGui variable for MenuBar
+	bool b_ShouldDrawMenuBar;
+	
+	// Representative variable for vm clock speed
+	int clockspeed;
 
 	std::array<int, 16> keymap;
-	std::array<controlmap, 16> contmap;
 	PressMode pmode;
-	PressMode pcont;
+
+	// This array contains structers of controlmap which is used for input
+	std::array<controlmap, 16> contmap;
+
 
 	void init();
+	void run();
+	
+	// Wrapper methods for keyboard and controller input
+	void presskey(int key);
+	void releasekey(int key);
+	void handlecontroller();
+
+	// Savestate methods
+	void SaveState();
+	void LoadState();
+
+private:
+
+	void InitDefaultValues();
+
+	// Emulator loop
+	void EmuLoop();
+
+	// ImGui methods for drawing gui
 	void DrawMenuBar();
 	void DrawDebuggerStuf();
 	void DrawSettingsWindow(bool* open);
-
 	void DrawOtherWindows();
-
+	
+	// Absurd method
 	void DecideDebuggerStatus();
 
-	void EmuLoop();
+	// Renderer class
+	CRenderQuads gquads;
 
-	void run();
-
-
-	void presskey(int key);
-	void releasekey(int key);
-
-	void handlecontroller();
-
+	// Config class and method
+	Config cfg;
 	void loadconfig();
 
-	void SaveState();
-	void LoadState();
+	// This struct used for input mapping in controllers
+	PressMode pcont;
+	
+	// Debugger classes
+	DebuggerUi gdebugger;
+	Debugger debugger;
+
+
+	// ImGui variables
+	bool b_ShowCpuDebugger;
+	bool b_ShowGraphicsDebugger;
+	bool b_ShowStackView;
+	bool b_ShowKeyView;
+	bool b_DrawFile;
+	bool b_ShowSettings;
+
+	// Indicates if rom loaded or not
+	bool b_RomLoaded;
 };
 
 #endif

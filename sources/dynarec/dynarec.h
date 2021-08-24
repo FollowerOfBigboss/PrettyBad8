@@ -1,15 +1,19 @@
 #ifndef DYNAREC
 #define DYNAREC
 
-// Concept
+#include <iostream>
+#ifdef _WIN32
+#include <Windows.h>
+#endif
 
 struct CodeBlock
 {
 	void* code;
-	int size;
+	uint32_t size;
 };
 
 
-void* AllocateDynarecMem(int size);
+bool AllocateDynarecMem(CodeBlock* block, uint32_t size);
+bool DeAllocateDynarecMem(CodeBlock* block);
 
 #endif

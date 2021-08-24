@@ -8,66 +8,27 @@
 
 void Emu::init()
 {
-	ShowCpuDebugger = false;
-	ShowGraphicsDebugger = false;
-	ShowStackView = false;
-	ShowKeyView = false;
-	ShouldDrawMenuBar = true;
-	RomLoaded = false;
-	DrawFile = false;
-	ShowSettings = false;
-	Vsync = true;
-
-	pmode.pressed = true;
-	pcont.pressed = true;
-
-	clockspeed = 500;
-	CurrentInput = EmuInput::Keyboard;
-	gquads.init();
-	debugger.attach(&vm);
-	gdebugger.attach(&debugger);
-
-	keymap[0] = GLFW_KEY_1;
-	keymap[1] = GLFW_KEY_2;
-	keymap[2] = GLFW_KEY_3;
-	keymap[3] = GLFW_KEY_4;
-						  
-	keymap[4] = GLFW_KEY_Q;
-	keymap[5] = GLFW_KEY_W;
-	keymap[6] = GLFW_KEY_E;
-	keymap[7] = GLFW_KEY_R;
-						  
-	keymap[8] = GLFW_KEY_A;
-	keymap[9] = GLFW_KEY_S;
-	keymap[10] = GLFW_KEY_D;
-	keymap[11] = GLFW_KEY_F;
-						  
-	keymap[12] = GLFW_KEY_Z;
-	keymap[13] = GLFW_KEY_X;
-	keymap[14] = GLFW_KEY_C;
-	keymap[15] = GLFW_KEY_V;
-
-	contmap.fill({ -1 , -1});
+	InitDefaultValues();
 	loadconfig();
 }
 
 void Emu::DrawMenuBar()
 {
-	if (ShouldDrawMenuBar)
+	if (b_ShouldDrawMenuBar)
 	{
 
 		if (ImGui::BeginMainMenuBar())
 		{
 			if (ImGui::BeginMenu("File"))
 			{
-				ImGui::MenuItem("Open", 0, &DrawFile);
+				ImGui::MenuItem("Open", 0, &b_DrawFile);
 
 				if (ImGui::MenuItem("Close", 0))
 				{
 
-					if (RomLoaded == true)
+					if (b_RomLoaded == true)
 					{
-						RomLoaded = false;
+						b_RomLoaded = false;
 						vm.reset();
 					}
 
@@ -75,8 +36,7 @@ void Emu::DrawMenuBar()
 
 				if (ImGui::MenuItem("Exit"))
 				{
-					// Don't care about deconstruction of emulator exit immediatly
-					exit(0);
+					b_EmuRun = false;
 				}
 
 				ImGui::EndMenu();
@@ -85,20 +45,23 @@ void Emu::DrawMenuBar()
 
 			if (ImGui::BeginMenu("Settings"))
 			{
-				ImGui::MenuItem("Settings", 0, &ShowSettings);
+				ImGui::MenuItem("Settings", 0, &b_ShowSettings);
 				ImGui::EndMenu();
 			}
 
-			if (ImGui::BeginMenu("Debug"))
+			if (b_Debug == true)
 			{
-				ImGui::MenuItem("CPU Debugger", 0, &ShowCpuDebugger);
-				ImGui::MenuItem("Graphics Debugger", 0, &ShowGraphicsDebugger);
-				ImGui::MenuItem("Stack View", 0, &ShowStackView);
-				ImGui::MenuItem("Key View", 0, &ShowKeyView);
-				ImGui::EndMenu();
-			}
+				if (ImGui::BeginMenu("Debug"))
+				{
+					ImGui::MenuItem("CPU Debugger", 0, &b_ShowCpuDebugger);
+					ImGui::MenuItem("Graphics Debugger", 0, &b_ShowGraphicsDebugger);
+					ImGui::MenuItem("Stack View", 0, &b_ShowStackView);
+					ImGui::MenuItem("Key View", 0, &b_ShowKeyView);
+					ImGui::EndMenu();
+				}
 
-			gdebugger.DrawDebuggerStatus();
+				gdebugger.DrawDebuggerStatus();
+			}
 			ImGui::EndMainMenuBar();
 		}
 
@@ -107,24 +70,24 @@ void Emu::DrawMenuBar()
 
 void Emu::DrawDebuggerStuf()
 {
-	if (ShowGraphicsDebugger)
+	if (b_ShowGraphicsDebugger)
 	{
-		gdebugger.DrawGraphicsDebugger(&ShowGraphicsDebugger);
+		gdebugger.DrawGraphicsDebugger(&b_ShowGraphicsDebugger);
 	}
 	
-	if (ShowStackView)
+	if (b_ShowStackView)
 	{
-		gdebugger.DrawStack(&ShowStackView);
+		gdebugger.DrawStack(&b_ShowStackView);
 	}
 	
-	if (ShowKeyView)
+	if (b_ShowKeyView)
 	{
-		gdebugger.DrawKey(&ShowKeyView);
+		gdebugger.DrawKey(&b_ShowKeyView);
 	}
 	
-	if (ShowCpuDebugger)
+	if (b_ShowCpuDebugger)
 	{
-		gdebugger.DrawCpuDebugger(&ShowCpuDebugger);
+		gdebugger.DrawCpuDebugger(&b_ShowCpuDebugger);
 	}	
 }
 
@@ -136,9 +99,9 @@ void Emu::DrawSettingsWindow(bool* open)
 	{
 		if (ImGui::BeginTabItem("General"))
 		{
-			if (ImGui::Checkbox("Vsync", &Vsync))
+			if (ImGui::Checkbox("Vsync", &b_Vsync))
 			{
-				glfwSwapInterval(static_cast<int>(Vsync));
+				glfwSwapInterval(static_cast<int>(b_Vsync));
 			}
 
 			ImGui::Text("VM cpu speed");
@@ -275,7 +238,7 @@ void Emu::DrawSettingsWindow(bool* open)
 
 void Emu::DrawOtherWindows()
 {
-	if (DrawFile)
+	if (b_DrawFile)
 	{
 		ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Choose File", ".*", ".");
 
@@ -287,18 +250,18 @@ void Emu::DrawOtherWindows()
 
 				vm.init();
 				vm.loadrom(filePathName);
-				RomLoaded = true;
+				b_RomLoaded = true;
 				gdebugger.UpdateDisassembly();
 			}
 
 			ImGuiFileDialog::Instance()->Close();
-			DrawFile = false;
+			b_DrawFile = false;
 		}
 	}
 
-	if (ShowSettings)
+	if (b_ShowSettings)
 	{
-		DrawSettingsWindow(&ShowSettings);
+		DrawSettingsWindow(&b_ShowSettings);
 	}
 }
 
@@ -307,19 +270,66 @@ void Emu::DecideDebuggerStatus()
 	if (debugger.debugger_status == DebuggerStatus::debugger_pause || debugger.debugger_status == DebuggerStatus::debugger_breakpoint_hit)
 		return;
 
-	if (RomLoaded == true && (ShowCpuDebugger == true || ShowGraphicsDebugger == true || ShowKeyView == true || ShowStackView == true))
+	if (b_RomLoaded == true && (b_ShowCpuDebugger == true || b_ShowGraphicsDebugger == true || b_ShowKeyView == true || b_ShowStackView == true))
 		debugger.debugger_status = DebuggerStatus::debugger_running;
 	else
 		debugger.debugger_status = DebuggerStatus::debugger_not_running;
 }
 
+void Emu::InitDefaultValues()
+{
+	b_ShowCpuDebugger = false;
+	b_ShowGraphicsDebugger = false;
+	b_ShowStackView = false;
+	b_ShowKeyView = false;
+	b_ShouldDrawMenuBar = true;
+	b_RomLoaded = false;
+	b_DrawFile = false;
+	b_ShowSettings = false;
+	b_Vsync = true;
+
+	pmode.pressed = true;
+	pcont.pressed = true;
+
+	clockspeed = 500;
+	CurrentInput = EmuInput::Keyboard;
+	gquads.init();
+	debugger.attach(&vm);
+	gdebugger.attach(&debugger);
+
+	keymap[0] = GLFW_KEY_1;
+	keymap[1] = GLFW_KEY_2;
+	keymap[2] = GLFW_KEY_3;
+	keymap[3] = GLFW_KEY_4;
+
+	keymap[4] = GLFW_KEY_Q;
+	keymap[5] = GLFW_KEY_W;
+	keymap[6] = GLFW_KEY_E;
+	keymap[7] = GLFW_KEY_R;
+
+	keymap[8] = GLFW_KEY_A;
+	keymap[9] = GLFW_KEY_S;
+	keymap[10] = GLFW_KEY_D;
+	keymap[11] = GLFW_KEY_F;
+
+	keymap[12] = GLFW_KEY_Z;
+	keymap[13] = GLFW_KEY_X;
+	keymap[14] = GLFW_KEY_C;
+	keymap[15] = GLFW_KEY_V;
+
+	contmap.fill({ -1 , -1 });
+
+	b_EmuRun = true;
+	b_Debug = false;
+}
+
 void Emu::EmuLoop()
 {
-	if (debugger.debugger_status != DebuggerStatus::debugger_not_running && RomLoaded == true)
+	if (debugger.debugger_status != DebuggerStatus::debugger_not_running && b_RomLoaded == true && b_Debug == true)
 	{
 		debugger.run();
 	}
-	else if (RomLoaded == true)
+	else if (b_RomLoaded == true)
 	{
 		vm.run(clockspeed);
 	}
@@ -327,10 +337,18 @@ void Emu::EmuLoop()
 
 void Emu::run()
 {
-	DecideDebuggerStatus();
+	if (b_Debug == true)
+	{
+		DecideDebuggerStatus();
+	}
 	DrawMenuBar();
+
 	DrawOtherWindows();
-	DrawDebuggerStuf();
+
+	if (b_Debug == true)
+	{
+		DrawDebuggerStuf();
+	}
 
 	EmuLoop();
 	gquads.update(vm);
@@ -340,7 +358,7 @@ void Emu::SaveState()
 {
 	FILE* fs = fopen("ch8state.st", "wb");
 	Sstate state;
-	state.magic = 0x63387374;
+	state.magic = 0x74733863;
 
 	for (int i = 0; i < 16; i++)
 	{
@@ -364,7 +382,18 @@ void Emu::LoadState()
 {
 	Sstate state;
 	FILE* fs = fopen("ch8state.st", "rb");
-	fread(&state, sizeof(state), 1, fs);
+	
+	if (fs == nullptr)
+	{
+		printf("File load failed!\n");
+		return;
+	}
+
+	if (fread(&state, sizeof(state), 1, fs) != 1)
+	{
+		printf("File read failed!\n");
+		return;
+	}
 
 
 	for (int i = 0; i < 16; i++)
@@ -407,6 +436,8 @@ void Emu::releasekey(int key)
 
 void Emu::handlecontroller()
 {
+	memset(vm.Key, 0, sizeof(uint8_t) * 16);
+
 	int buttoncount;
 	const unsigned char* buttonptr = glfwGetJoystickButtons(GLFW_JOYSTICK_1, &buttoncount);
 
@@ -443,6 +474,13 @@ void Emu::loadconfig()
 {
 
 	FILE* fs = fopen("emu.cfg", "rb");
+
+	if (fs == nullptr)
+	{
+		printf("File load failed!\n");
+		return;
+	}
+
 	long fsize;
 	fseek(fs, 0, SEEK_END);
 	fsize = ftell(fs);

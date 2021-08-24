@@ -66,6 +66,7 @@ add_executable(EmuPBad8
 		   sources/config_parser/config_parser.cpp
 		   
 		   sources/dynarec/dynarec.h
+		   sources/dynarec/dynarec.cpp
 )
 
 add_library(GLAD
