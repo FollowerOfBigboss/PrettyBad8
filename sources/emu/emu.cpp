@@ -1,10 +1,10 @@
-#include "emu.h"
-#include <GLFW/glfw3.h>
-
 #include <iostream>
 #include <string>
 #include <sstream>
 #include <array>
+
+#include "emu.h"
+#include <GLFW/glfw3.h>
 
 void Emu::init()
 {
@@ -123,7 +123,8 @@ void Emu::DrawSettingsWindow(bool* open)
 			std::array<std::string, 3> strarr = { "No Input", "Keyboard", "No Controller Connected" };
 			if (glfwJoystickPresent(GLFW_JOYSTICK_1) == GLFW_TRUE)
 			{
-				strarr[2] = glfwGetJoystickName(GLFW_JOYSTICK_1);
+				const char* joystickptr = glfwGetJoystickName(GLFW_JOYSTICK_1);
+				strarr[2] = joystickptr;
 			}
 		
 			const char* combo_label = strarr[CurrentInput].c_str();
@@ -327,11 +328,11 @@ void Emu::EmuLoop()
 {
 	if (debugger.debugger_status != DebuggerStatus::debugger_not_running && b_RomLoaded == true && b_Debug == true)
 	{
-		debugger.run();
+		debugger.run(clockspeed, b_Vsync);
 	}
 	else if (b_RomLoaded == true)
 	{
-		vm.run(clockspeed);
+		vm.run(clockspeed, b_Vsync);
 	}
 }
 

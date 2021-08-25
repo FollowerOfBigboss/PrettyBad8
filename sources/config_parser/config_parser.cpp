@@ -123,6 +123,14 @@ void Config::WriteToConfig(const std::string& cfgFilePath)
 		cfgbuf.append(k + "=" + std::to_string(pemu->keymap[i]) + "\n");
 	}
 
+	for (int i = 0; i < 16; i++)
+	{
+		std::string k = "GAMEPAD_";
+		k.append(1, ctable[i]);
+		cfgbuf.append(k + "=" + std::to_string(pemu->contmap[i].key) + "\n");
+	}
+
+
 	fwrite(cfgbuf.c_str(), 1, cfgbuf.size(), fs);
 	fclose(fs);
 }

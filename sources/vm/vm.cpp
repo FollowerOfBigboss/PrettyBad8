@@ -140,10 +140,21 @@ void VM::reset_and_loadrom()
 	this->loadrom(LastLoadedRomPath);
 }
 
-void VM::run(int freq)
+void VM::run(int freq, bool vsync)
 {
-	int a = hztocycles(freq);
-	for (int i = 0; i < a; i++)
+	int neededcycles = 0;
+
+	if (vsync == true)
+	{
+		neededcycles = hztocycles(freq);
+	}
+	else
+	{
+		neededcycles = cl.CatchUpCycles(freq, CHIP);
+	}
+	
+
+	for (int i = 0; i < neededcycles; i++)
 	{
 		this->cycle();
 	}
@@ -555,31 +566,3 @@ void instructions::LD_F065(VM* VM)
 	VM->I += ((VM->opcode & 0x0F00) >> 8) + 1;
 	VM->PC += 2;
 }
-
-
-/*
-
-
-void Clock::Reset()
-{
-	lastCycleTimer = -1;
-}
-
-int Clock::CatchUpCycles(int frequency)
-{
-	auto now = std::chrono::system_clock::now();
-	long long currentClockMs = std::chrono::time_point_cast<std::chrono::milliseconds>(now).time_since_epoch().count();
-
-	if (lastCycleTimer == -1)
-		lastCycleTimer = currentClockMs;
-
-	int cycles = (int)(currentClockMs - lastCycleTimer) * frequency / 1000;
-
-	if (cycles > 0)
-		lastCycleTimer = currentClockMs;
-
-	return cycles;
-}
-
-
-*/

@@ -4,6 +4,8 @@
 #include <iostream>
 #include <string>
 
+#include "../clock/clock.h"
+
 const uint8_t vm_font[] = {
 	0xF0, 0x90, 0x90, 0x90, 0xF0, //0
 	0x20, 0x60, 0x20, 0x20, 0x70, //1
@@ -33,7 +35,7 @@ public:
 	void reset();
 	void reset_and_loadrom();
 
-	void run(int freq);
+	void run(int freq, bool vsync);
 	void shutdown();
 
 	uint8_t V[16];
@@ -49,6 +51,7 @@ public:
 	uint16_t opcode;
 
 	std::string LastLoadedRomPath;
+	Clock cl;
 };
 
 
@@ -101,19 +104,3 @@ inline int hztocycles(int freq) { return freq / 60; }
 #endif
 
 
-// TODO: Implement later
-// https://github.com/geaz/emu-chip-8
-
-
-/*
-class Clock
-{
-public:
-	void Reset();
-	int CatchUpCycles(int frequency);
-
-private:
-	long long lastCycleTimer = -1;
-};
-
-*/

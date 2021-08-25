@@ -8,7 +8,7 @@
 #include <functional>
 #include <array>
 
-extern struct Emu;
+extern class Emu;
 
 const struct EntryContainer
 {

@@ -67,6 +67,8 @@ add_executable(EmuPBad8
 		   
 		   sources/dynarec/dynarec.h
 		   sources/dynarec/dynarec.cpp
+
+		   sources/clock/clock.h
 )
 
 add_library(GLAD

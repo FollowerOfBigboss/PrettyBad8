@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include <GLAD/glad.h>
 #include <GLFW/glfw3.h>
 
@@ -7,8 +9,6 @@
 
 #include "vm/vm.h"
 #include "emu/emu.h"
-
-#include <iostream>
 
 void glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void glfwResizeCallback(GLFWwindow* window, int width, int height);

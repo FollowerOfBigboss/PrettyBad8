@@ -1,9 +1,11 @@
 #ifndef N_DBG
 #define N_DBG
 
-#include "vm.h"
 #include <vector>
 #include <algorithm>
+
+#include "vm.h"
+#include "../clock/clock.h"
 
 enum DebuggerStatus
 {
@@ -45,7 +47,7 @@ public:
 	inline void attach(VM* vmptr) { vm = vmptr; }
 	inline void deattach() { vm = nullptr; }
 	
-	void run();
+	void run(int freq, bool vsync);
 	inline void reset() { vm->reset_and_loadrom(); }
 
 
@@ -68,6 +70,7 @@ public:
 	int debugger_status = DebuggerStatus::debugger_not_running;
 
 	VM* vm;
+	Clock cl;
 };
 
 #endif

@@ -1,8 +1,8 @@
 #ifndef DBGUI
 #define DBGUI
 
-#include "../vm/debugger.h"
 #include "imgui/imgui.h"
+#include "../vm/debugger.h"
 
 struct InstructionInfo
 {

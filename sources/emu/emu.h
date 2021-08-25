@@ -1,6 +1,8 @@
 #ifndef EMU
 #define EMU
 
+#include <array>
+
 #include "imgui/imgui.h"
 #include "imgui/ImGuiFileDialog.h"
 
@@ -9,8 +11,6 @@
 #include "../render/simple_renderer.h"
 
 #include "../config_parser/config_parser.h"
-
-#include <array>
 
 enum EmuInput : int
 {
