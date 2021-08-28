@@ -1,6 +1,6 @@
 #include "debugger.h"
 
-void Debugger::run(int freq, bool vsync)
+void Debugger::run(int freq)
 {
 	// this flag set by outside
 	if (debugger_status == DebuggerStatus::debugger_run_after_breakpoint_hit)
@@ -14,14 +14,7 @@ void Debugger::run(int freq, bool vsync)
 	if (debugger_status == DebuggerStatus::debugger_running)
 	{
 		int neededcycles = 0;
-		if (vsync == true)
-		{
-			neededcycles = hztocycles(freq);
-		}
-		else
-		{
-			neededcycles = cl.CatchUpCycles(freq, CHIP);
-		}
+		neededcycles = hztocycles(freq);
 
 		for (int i = 0; i < neededcycles; i++)
 		{

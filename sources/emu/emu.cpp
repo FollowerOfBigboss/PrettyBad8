@@ -114,6 +114,9 @@ void Emu::DrawSettingsWindow(bool* open)
 				clockspeed = 500;
 			}
 
+#	ifdef PDEBUG
+			ImGui::Checkbox("Debug", &b_Debug);
+#	endif
 
 			ImGui::EndTabItem();
 		}
@@ -162,8 +165,8 @@ void Emu::DrawSettingsWindow(bool* open)
 					}
 					else
 					{
-					 	char tmp[10] = { 0 };
-					 	snprintf(tmp, 10, "%s##%i", glfwGetKeyName(keymap[i], 0), i);
+					 	char tmp[20] = { 0 };
+					 	snprintf(tmp, 20, "%s##%i", glfwGetKeyName(keymap[i], 0), i);
 						if (ImGui::Button(tmp))
 						{
 							pmode.pressed = false;
@@ -219,7 +222,7 @@ void Emu::DrawSettingsWindow(bool* open)
 			pcont.keytochanged = -1;
 
 			pmode.pressed = true;
-			pmode.pressed = -1;
+			pmode.keytochanged = -1;
 		}
 
 		ImGui::Dummy(ImVec2(ImGui::GetContentRegionAvail().x - 110, ImGui::GetContentRegionAvail().y - 40));
@@ -322,17 +325,23 @@ void Emu::InitDefaultValues()
 
 	b_EmuRun = true;
 	b_Debug = false;
+
+	pcont.keytochanged = -1;
+	pcont.pressed = true;
+
+	pmode.keytochanged = -1;
+	pmode.pressed = true;
 }
 
 void Emu::EmuLoop()
 {
 	if (debugger.debugger_status != DebuggerStatus::debugger_not_running && b_RomLoaded == true && b_Debug == true)
 	{
-		debugger.run(clockspeed, b_Vsync);
+		debugger.run(clockspeed);
 	}
 	else if (b_RomLoaded == true)
 	{
-		vm.run(clockspeed, b_Vsync);
+		vm.run(clockspeed);
 	}
 }
 
@@ -419,7 +428,7 @@ void Emu::presskey(int key)
 	{
 		if (key == keymap[i])
 		{
-			vm.Key[i] = 1;
+			vm.Key[i] = static_cast<uint8_t>(1);
 		}
 	}
 }
@@ -430,7 +439,7 @@ void Emu::releasekey(int key)
 	{
 		if (key == keymap[i])
 		{
-			vm.Key[i] = 0;
+			vm.Key[i] = static_cast<uint8_t>(0);
 		}
 	}
 }
@@ -463,7 +472,7 @@ void Emu::handlecontroller()
 			{
 				if (contmap[a].key == i)
 				{
-					vm.Key[contmap[a].maploc] = 1;
+					vm.Key[contmap[a].maploc] = static_cast<uint8_t>(1);
 				}
 			}
 		}

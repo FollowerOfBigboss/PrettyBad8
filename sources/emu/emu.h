@@ -56,9 +56,6 @@ public:
 
 	bool b_Debug;
 
-	// VM class
-	VM vm;
-
 	// Indicates current input method
 	int CurrentInput;
 	
@@ -67,7 +64,11 @@ public:
 
 	// Another ImGui variable for MenuBar
 	bool b_ShouldDrawMenuBar;
-	
+
+	// VM class
+	VM vm;
+
+
 	// Representative variable for vm clock speed
 	int clockspeed;
 
@@ -76,6 +77,9 @@ public:
 
 	// This array contains structers of controlmap which is used for input
 	std::array<controlmap, 16> contmap;
+
+	// This struct used for input mapping in controllers
+	PressMode pcont;
 
 
 	void init();
@@ -90,7 +94,6 @@ public:
 	void SaveState();
 	void LoadState();
 
-private:
 
 	void InitDefaultValues();
 
@@ -102,7 +105,7 @@ private:
 	void DrawDebuggerStuf();
 	void DrawSettingsWindow(bool* open);
 	void DrawOtherWindows();
-	
+
 	// Absurd method
 	void DecideDebuggerStatus();
 
@@ -113,9 +116,7 @@ private:
 	Config cfg;
 	void loadconfig();
 
-	// This struct used for input mapping in controllers
-	PressMode pcont;
-	
+
 	// Debugger classes
 	DebuggerUi gdebugger;
 	Debugger debugger;
@@ -131,6 +132,10 @@ private:
 
 	// Indicates if rom loaded or not
 	bool b_RomLoaded;
+
+
+private:
+
 };
 
 #endif

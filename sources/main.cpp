@@ -12,7 +12,8 @@
 
 void glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void glfwResizeCallback(GLFWwindow* window, int width, int height);
-void glfwJoystickInput();
+void JoystickInput();
+
 void ImGuiBeginFrame();
 void ImGuiEndFrame();
 
@@ -60,7 +61,7 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT);
 
         ImGuiBeginFrame();
-        glfwJoystickInput();
+        JoystickInput();
         g_Emu.run();
 #ifdef PDEBUG
         ImGui::ShowDemoWindow();
@@ -124,15 +125,14 @@ void glfwResizeCallback(GLFWwindow* window, int width, int height)
     glViewport(0, 0, width, height);
 }
 
-void glfwJoystickInput()
+
+void JoystickInput()
 {
     if (g_Emu.CurrentInput == EmuInput::Controller)
     {
-
         if (glfwJoystickPresent(GLFW_JOYSTICK_1))
         {
             g_Emu.handlecontroller();
-
         }
     }
 

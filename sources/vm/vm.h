@@ -4,8 +4,6 @@
 #include <iostream>
 #include <string>
 
-#include "../clock/clock.h"
-
 const uint8_t vm_font[] = {
 	0xF0, 0x90, 0x90, 0x90, 0xF0, //0
 	0x20, 0x60, 0x20, 0x20, 0x70, //1
@@ -29,13 +27,15 @@ const uint8_t vm_font[] = {
 class VM
 {
 public:
+	VM();
+
 	void init();
 	bool loadrom(const std::string& rompath);
 	void cycle();
 	void reset();
 	void reset_and_loadrom();
 
-	void run(int freq, bool vsync);
+	void run(int freq);
 	void shutdown();
 
 	uint8_t V[16];
@@ -47,55 +47,54 @@ public:
 	uint8_t Key[16];
 	uint8_t memory[4096];
 	uint16_t stack[16];
-	uint8_t gfx[64 * 32];
+	uint8_t gfx[2048];
 	uint16_t opcode;
 
 	std::string LastLoadedRomPath;
-	Clock cl;
 };
 
 
 namespace instructions
 {
-	void CLS_00E0(VM* VM);
-	void RET_00EE(VM* VM);
+	void CLS_00E0(VM* vm);
+	void RET_00EE(VM* vm);
 
-	void JP_1000(VM* VM);
-	void CALL_2000(VM* VM);
-	void SE_3000(VM* VM);
-	void SNE_4000(VM* VM);
-	void SE_5000(VM* VM);
-	void LD_6000(VM* VM);
-	void ADD_7000(VM* VM);
+	void JP_1000(VM* vm);
+	void CALL_2000(VM* vm);
+	void SE_3000(VM* vm);
+	void SNE_4000(VM* vm);
+	void SE_5000(VM* vm);
+	void LD_6000(VM* vm);
+	void ADD_7000(VM* vm);
 
-	void LD_8000(VM* VM);
-	void OR_8001(VM* VM);
-	void AND_8002(VM* VM);
-	void XOR_8003(VM* VM);
-	void ADD_8004(VM* VM);
-	void SUB_8005(VM* VM);
-	void SHR_8006(VM* VM);
-	void SUBN_8007(VM* VM);
-	void SHL_800E(VM* VM);
+	void LD_8000(VM* vm);
+	void OR_8001(VM* vm);
+	void AND_8002(VM* vm);
+	void XOR_8003(VM* vm);
+	void ADD_8004(VM* vm);
+	void SUB_8005(VM* vm);
+	void SHR_8006(VM* vm);
+	void SUBN_8007(VM* vm);
+	void SHL_800E(VM* vm);
 
-	void SNE_9000(VM* VM);
-	void LD_A000(VM* VM);
-	void JP_B000(VM* VM);
-	void RND_C000(VM* VM);
-	void DRW_D000(VM* VM);
+	void SNE_9000(VM* vm);
+	void LD_A000(VM* vm);
+	void JP_B000(VM* vm);
+	void RND_C000(VM* vm);
+	void DRW_D000(VM* vm);
 
-	void SKP_E09E(VM* VM);
-	void SKNP_E0A1(VM* VM);
+	void SKP_E09E(VM* vm);
+	void SKNP_E0A1(VM* vm);
 
-	void LD_F007(VM* VM);
-	void LD_F00A(VM* VM);
-	void LD_F015(VM* VM);
-	void LD_F018(VM* VM);
-	void ADD_F01E(VM* VM);
-	void LD_F029(VM* VM);
-	void LD_F033(VM* VM);
-	void LD_F055(VM* VM);
-	void LD_F065(VM* VM);
+	void LD_F007(VM* vm);
+	void LD_F00A(VM* vm);
+	void LD_F015(VM* vm);
+	void LD_F018(VM* vm);
+	void ADD_F01E(VM* vm);
+	void LD_F029(VM* vm);
+	void LD_F033(VM* vm);
+	void LD_F055(VM* vm);
+	void LD_F065(VM* vm);
 }
 
 // Use for now better implementation will implemented at future

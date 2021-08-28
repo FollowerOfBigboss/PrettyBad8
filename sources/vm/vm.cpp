@@ -1,5 +1,10 @@
 #include "vm.h"
 
+VM::VM()
+{
+	this->reset();
+}
+
 void VM::init()
 {
 	this->reset();
@@ -43,7 +48,7 @@ bool VM::loadrom(const std::string& rompath)
 void VM::cycle()
 {
 	this->opcode = this->memory[this->PC] << 8 | this->memory[this->PC + 1];
-
+	
 	switch (this->opcode & 0xF000)
 	{
 	case 0x0000:
@@ -105,7 +110,7 @@ void VM::cycle()
 		}
 		break;
 	}
-
+	
 	if (this->DT > 0)
 	{
 		this->DT--;
@@ -140,19 +145,11 @@ void VM::reset_and_loadrom()
 	this->loadrom(LastLoadedRomPath);
 }
 
-void VM::run(int freq, bool vsync)
+void VM::run(int freq)
 {
 	int neededcycles = 0;
+	neededcycles = hztocycles(freq);
 
-	if (vsync == true)
-	{
-		neededcycles = hztocycles(freq);
-	}
-	else
-	{
-		neededcycles = cl.CatchUpCycles(freq, CHIP);
-	}
-	
 
 	for (int i = 0; i < neededcycles; i++)
 	{
@@ -165,404 +162,298 @@ void VM::shutdown()
 	this->reset();
 }
 
-
-// 00E0 - CLS
-//Clear the display.
-void instructions::CLS_00E0(VM* VM)
+void instructions::CLS_00E0(VM* vm)
 {
-	memset(VM->gfx, 0, sizeof(VM->gfx));
-	VM->PC += 2;
+	memset(vm->gfx, 0, sizeof(vm->gfx));
+	vm->PC += 2;
 }
 
-// 00EE - RET 
-// Return from a subroutine.
-void instructions::RET_00EE(VM* VM)
+void instructions::RET_00EE(VM* vm)
 {
-	VM->SP--;
-	VM->PC = VM->stack[VM->SP];
-	VM->stack[VM->SP] = 0;
-
-	VM->PC += 2;
+	vm->SP--;
+	vm->PC = vm->stack[vm->SP];
+	vm->stack[vm->SP] = static_cast<uint16_t>(0);
+	vm->PC += 2;
 }
 
-// 1nnn - JP addr
-// Jump to location nnn
-void instructions::JP_1000(VM* VM)
+void instructions::JP_1000(VM* vm)
 {
-	VM->PC = VM->opcode & 0x0FFF;
+	vm->PC = vm->opcode & 0x0FFF;
 }
 
-// 2nnn - CALL addr
-// Call subroutine at nnn
-void instructions::CALL_2000(VM* VM)
+void instructions::CALL_2000(VM* vm)
 {
-	VM->stack[VM->SP] = VM->PC;
-	VM->SP++;
-	VM->PC = VM->opcode & 0x0FFF;
+	vm->stack[vm->SP] = vm->PC;
+	vm->SP++;
+	vm->PC = (vm->opcode & 0x0FFF);
 }
 
-// 3xkk - SE Vx, byte
-// Skip next instruction if Vx = kk
-void instructions::SE_3000(VM* VM)
+void instructions::SE_3000(VM* vm)
 {
-	if (VM->V[(VM->opcode & 0x0F00) >> 8] == (VM->opcode & 0x00FF))
+	if (vm->V[(vm->opcode & 0x0F00) >> 8] == (vm->opcode & 0x00FF))
 	{
-		VM->PC += 4;
+		vm->PC += 4;
 	}
 	else
 	{
-		VM->PC += 2;
+		vm->PC += 2;
 	}
 }
 
-// SNE Vx, byte
-// Skip next instruction if Vx != kk
-void instructions::SNE_4000(VM* VM)
+void instructions::SNE_4000(VM* vm)
 {
-	if (VM->V[(VM->opcode & 0x0F00) >> 8] != (VM->opcode & 0x00FF))
+	if (vm->V[(vm->opcode & 0x0F00) >> 8] != (vm->opcode & 0x00FF))
 	{
-		VM->PC += 4;
+		vm->PC += 4;
 	}
 	else
 	{
-		VM->PC += 2;
+		vm->PC += 2;
 	}
 }
 
-// 5xy0 - SE Vx, Vy
-// Skip next instruction if Vx = Vy
-void instructions::SE_5000(VM* VM)
+void instructions::SE_5000(VM* vm)
 {
-	if (VM->V[(VM->opcode & 0x0F00) >> 8] == VM->V[(VM->opcode & 0x00F0) >> 4])
+	if (vm->V[(vm->opcode & 0x0F00) >> 8] == vm->V[(vm->opcode & 0x00F0) >> 4])
 	{
-		VM->PC += 4;
+		vm->PC += 4;
 	}
 	else
 	{
-		VM->PC += 2;
+		vm->PC += 2;
 	}
 }
 
-// 6xkk - LD Vx, byte
-// Set Vx = kk
-void instructions::LD_6000(VM* VM)
+void instructions::LD_6000(VM* vm)
 {
-	VM->V[(VM->opcode & 0x0F00) >> 8] = VM->opcode & 0x00FF;
-	VM->PC += 2;
+	vm->V[(vm->opcode & 0x0F00) >> 8] = (vm->opcode & 0x00FF);
+	vm->PC += 2;
 }
 
-// 7xkk - ADD Vx, byte
-// Set Vx = Vx + kk
-void instructions::ADD_7000(VM* VM)
+void instructions::ADD_7000(VM* vm)
 {
-	VM->V[(VM->opcode & 0x0F00) >> 8] += VM->opcode & 0x00FF;
-	VM->PC += 2;
+	vm->V[(vm->opcode & 0x0F00) >> 8] += (vm->opcode & 0x00FF);
+	vm->PC += 2;
 }
 
-// 8xy0 - LD Vx, Vy
-// Set Vx = Vy
-void instructions::LD_8000(VM* VM)
+void instructions::LD_8000(VM* vm)
 {
-	VM->V[(VM->opcode & 0x0F00) >> 8] = VM->V[(VM->opcode & 0x00F0) >> 4];
-	VM->PC += 2;
+	vm->V[(vm->opcode & 0x0F00) >> 8] = vm->V[(vm->opcode & 0x00F0) >> 4];
+	vm->PC += 2;
 }
 
-// 8xy1 - OR Vx, Vy
-// Set Vx = Vx OR Vy
-void instructions::OR_8001(VM* VM)
+void instructions::OR_8001(VM* vm)
 {
-	VM->V[(VM->opcode & 0x0F00) >> 8] |= VM->V[(VM->opcode & 0x00F0) >> 4];
-	VM->PC += 2;
+	vm->V[(vm->opcode & 0x0F00) >> 8] |= vm->V[(vm->opcode & 0x00F0) >> 4];
+	vm->PC += 2;
 }
 
-// 8xy2 - AND Vx, Vy
-// Set Vx = Vx AND Vy
-void instructions::AND_8002(VM* VM)
+void instructions::AND_8002(VM* vm)
 {
-	VM->V[(VM->opcode & 0x0F00) >> 8] &= VM->V[(VM->opcode & 0x00F0) >> 4];
-	VM->PC += 2;
+	vm->V[(vm->opcode & 0x0F00) >> 8] &= vm->V[(vm->opcode & 0x00F0) >> 4];
+	vm->PC += 2;
 }
 
-// 8xy3 - XOR Vx, Vy
-// Set Vx = Vx XOR Vy
-void instructions::XOR_8003(VM* VM)
+void instructions::XOR_8003(VM* vm)
 {
-	VM->V[(VM->opcode & 0x0F00) >> 8] ^= VM->V[(VM->opcode & 0x00F0) >> 4];
-	VM->PC += 2;
+	vm->V[(vm->opcode & 0x0F00) >> 8] ^= vm->V[(vm->opcode & 0x00F0) >> 4];
+	vm->PC += 2;
 }
 
-// 8xy4 - ADD Vx, Vy
-// Set Vx = Vx + Vy, set VF = carry
-void instructions::ADD_8004(VM* VM)
+void instructions::ADD_8004(VM* vm)
 {
-	if (VM->V[(VM->opcode & 0x00F0) >> 4] > (0xFF - VM->V[(VM->opcode & 0x0F00) >> 8]))
+	uint16_t tmp = vm->V[(vm->opcode & 0x0F00) >> 8] + vm->V[(vm->opcode & 0x00F0) >> 4];
+	vm->V[(vm->opcode & 0x0F00) >> 8] = static_cast<uint8_t>(tmp);
+	vm->V[15] = (tmp >> 8);
+	// printf("tmp is %i | V[15] is %i\n", tmp, vm->V[15]);
+	vm->PC += 2;
+}
+
+void instructions::SUB_8005(VM* vm)
+{
+
+	uint16_t tmp = vm->V[(vm->opcode & 0x0F00) >> 8] - vm->V[(vm->opcode & 0x00F0) >> 4];
+	vm->V[(vm->opcode & 0x0F00) >> 8] = static_cast<uint8_t>(tmp);
+	vm->V[15] = (tmp >> 8) + 1;	
+	vm->PC += 2;
+}
+
+void instructions::SHR_8006(VM* vm)
+{
+	vm->V[0xF] = vm->V[(vm->opcode & 0x0F00) >> 8] & 0x1;
+	vm->V[(vm->opcode & 0x0F00) >> 8] >>= 1;
+	vm->PC += 2;
+}
+
+void instructions::SUBN_8007(VM* vm)
+{
+	uint16_t tmp = vm->V[(vm->opcode & 0x00F0) >> 4] - vm->V[(vm->opcode & 0x0F00) >> 8];
+	vm->V[(vm->opcode & 0x0F00) >> 8] = static_cast<uint8_t>(tmp);
+	vm->V[15] = (tmp >> 8) + 1;
+	vm->PC += 2;
+}
+
+void instructions::SHL_800E(VM* vm)
+{
+	vm->V[0xF] = vm->V[(vm->opcode & 0x0F00) >> 8] >> 7;
+	vm->V[(vm->opcode & 0x0F00) >> 8] <<= 1;
+	vm->PC += 2;
+}
+
+void instructions::SNE_9000(VM* vm)
+{
+	if (vm->V[(vm->opcode & 0x0F00) >> 8] != vm->V[(vm->opcode & 0x00F0) >> 4])
 	{
-		VM->V[0xF] = 1;
+		vm->PC += 4;
 	}
 	else
 	{
-		VM->V[0xF] = 0;
+		vm->PC += 2;
 	}
-	VM->V[(VM->opcode & 0x0F00) >> 8] += VM->V[(VM->opcode & 0x00F0) >> 4];
-	VM->PC += 2;
 }
 
-// 8xy5 - SUB Vx, Vy
-// Set Vx = Vx - Vy, set VF = NOT borrow
-void instructions::SUB_8005(VM* VM)
+void instructions::LD_A000(VM* vm)
 {
-	if (VM->V[(VM->opcode & 0x00F0) >> 4] > VM->V[(VM->opcode & 0x0F00) >> 8])
+	vm->I = (vm->opcode & 0x0FFF);
+	vm->PC += 2;
+}
+
+void instructions::JP_B000(VM* vm)
+{
+	vm->PC = (vm->opcode & 0x0FFF) + vm->V[0];
+}
+
+void instructions::RND_C000(VM* vm)
+{
+	vm->V[(vm->opcode & 0x0F00) >> 8] = (rand() % (0xFF + 1)) & (vm->opcode & 0x00FF);
+	vm->PC += 2;
+}
+
+void instructions::DRW_D000(VM* vm)
+{
+    short x = vm->V[(vm->opcode & 0x0F00) >> 8];
+    short y = vm->V[(vm->opcode & 0x00F0) >> 4];
+    short height = vm->opcode & 0x000F;
+    short sprite;
+
+    vm->V[15] = 0;
+
+	for (short yLine = 0; yLine < height && (yLine + y) < 32; yLine++)
+    {
+        sprite = vm->memory[vm->I + yLine];
+        for (short xLine = 0; xLine < 8; xLine++)
+        {
+            if (((sprite >> (7 - xLine)) & 1) == 1)
+            {
+                if (vm->gfx[(x + xLine) + ((y + yLine) * 64)] == 1)
+                {
+                    vm->V[15] = 1;
+                }
+                vm->gfx[(x + xLine) + ((y + yLine) * 64)] ^= 1;
+            }
+        }
+    }
+	
+	vm->PC += 2;
+}
+
+void instructions::SKP_E09E(VM* vm)
+{
+	if (vm->Key[vm->V[(vm->opcode & 0x0F00) >> 8]] == 1)
 	{
-		VM->V[0xF] = 0;
+		vm->PC += 4;
 	}
 	else
 	{
-		VM->V[0xF] = 1;
+		vm->PC += 2;
 	}
-
-	VM->V[(VM->opcode & 0x0F00) >> 8] -= VM->V[(VM->opcode & 0x00F0) >> 4];
-	VM->PC += 2;
 }
 
-// 8xy6 - SHR Vx {, Vy}
-// Set Vx = Vx SHR 1.
-void instructions::SHR_8006(VM* VM)
+void instructions::SKNP_E0A1(VM* vm)
 {
-	VM->V[0xF] = VM->V[(VM->opcode & 0x0F00) >> 8] & 0x1;
-	VM->V[(VM->opcode & 0x0F00) >> 8] >>= 1;
-	VM->PC += 2;
-}
-
-// 8xy7 - SUBN Vx, Vy
-// Set Vx = Vy - Vx, set VF = NOT borrow
-void instructions::SUBN_8007(VM* VM)
-{
-	if (VM->V[(VM->opcode & 0x0F00) >> 8] > VM->V[(VM->opcode & 0x00F0) >> 4])
-		VM->V[0xF] = 0;
-	else
-		VM->V[0xF] = 1;
-	VM->V[(VM->opcode & 0x0F00) >> 8] = VM->V[(VM->opcode & 0x00F0) >> 4] - VM->V[(VM->opcode & 0x0F00) >> 8];
-	VM->PC += 2;
-}
-
-// 8xyE - SHL Vx {, Vy}
-// Set Vx = Vx SHL 1
-void instructions::SHL_800E(VM* VM)
-{
-	VM->V[0xF] = VM->V[(VM->opcode & 0x0F00) >> 8] >> 7;
-	VM->V[(VM->opcode & 0x0F00) >> 8] <<= 1;
-	VM->PC += 2;
-}
-
-// 9xy0 - SNE Vx, Vy
-// Skip next instruction if Vx != Vy
-void instructions::SNE_9000(VM* VM)
-{
-	if (VM->V[(VM->opcode & 0x0F00) >> 8] != VM->V[(VM->opcode & 0x00F0) >> 4])
+	if (vm->Key[vm->V[(vm->opcode & 0x0F00) >> 8]] == 0)
 	{
-		VM->PC += 4;
+		vm->PC += 4;
 	}
 	else
 	{
-		VM->PC += 2;
+		vm->PC += 2;
 	}
 }
 
-// Annn - LD I, addr
-// Set I = nnn
-void instructions::LD_A000(VM* VM)
+void instructions::LD_F007(VM* vm)
 {
-	VM->I = VM->opcode & 0x0FFF;
-	VM->PC += 2;
+	vm->V[(vm->opcode & 0x0F00) >> 8] = vm->DT;
+	vm->PC += 2;
 }
 
-// Bnnn - JP V0, addr
-// Jump to location nnn + V0
-void instructions::JP_B000(VM* VM)
+void instructions::LD_F00A(VM* vm)
 {
-	VM->PC = (VM->opcode & 0x0FFF) + VM->V[0];
-}
-
-// Cxkk - RND Vx, byte
-// Set Vx = random byte AND kk
-void instructions::RND_C000(VM* VM)
-{
-	VM->V[(VM->opcode & 0x0F00) >> 8] = (rand() % 0xFF) & (VM->opcode & 0x00FF);
-	VM->PC += 2;
-
-}
-
-// Dxyn - DRW Vx, Vy, nibble
-// Display n - byte sprite starting at memory location I at(Vx, Vy), set VF = collision
-void instructions::DRW_D000(VM* VM)
-{
-	unsigned short x = VM->V[(VM->opcode & 0x0F00) >> 8];
-	unsigned short y = VM->V[(VM->opcode & 0x00F0) >> 4];
-	unsigned short height = VM->opcode & 0x000F;
-	unsigned short pixel;
-
-	VM->V[0xF] = 0;
-	for (int yline = 0; yline < height; yline++)
-	{
-		pixel = VM->memory[VM->I + yline];
-		for (int xline = 0; xline < 8; xline++)
-		{
-			/*
-			 iterating left to right like this 
-				********
-			   /\	   /\
-				|	    |
-			  0x80	   0x10
-			
-			*/
-			if ((pixel & (0x80 >> xline)) != 0)
-			{
-				if (VM->gfx[(x + xline + ((y + yline) * 64))] == 1)
-				{
-					VM->V[0xF] = 1;
-				}
-				VM->gfx[x + xline + ((y + yline) * 64)] ^= 1;
-			}
-		}
-	}
-
-	VM->PC += 2;
-}
-
-// Ex9E - SKP Vx
-// Skip next instruction if key with the value of Vx is pressed
-void instructions::SKP_E09E(VM* VM)
-{
-	if (VM->Key[VM->V[(VM->opcode & 0x0F00) >> 8]] != 0)
-	{
-		VM->PC += 4;
-	}
-	else
-	{
-		VM->PC += 2;
-	}
-
-}
-
-// ExA1 - SKNP Vx
-// Skip next instruction if key with the value of Vx is not pressed
-void instructions::SKNP_E0A1(VM* VM)
-{
-	if (VM->Key[VM->V[(VM->opcode & 0x0F00) >> 8]] == 0)
-	{
-		VM->PC += 4;
-	}
-	else
-	{
-		VM->PC += 2;
-	}
-}
-
-// Fx07 - LD Vx, DT
-// Set Vx = delay timer value
-void instructions::LD_F007(VM* VM)
-{
-	VM->V[(VM->opcode & 0x0F00) >> 8] = VM->DT;
-	VM->PC += 2;
-}
-
-// Fx0A - LD Vx, K
-// Wait for a key press, store the value of the key in Vx
-void instructions::LD_F00A(VM* VM)
-{
-	bool keyPress = false;
+	bool key_pressed = false;
 
 	for (int i = 0; i < 16; ++i)
 	{
-		if (VM->Key[i] != 0)
+		if (vm->Key[i] != 0)
 		{
-			VM->V[(VM->opcode & 0x0F00) >> 8] = i;
-			keyPress = true;
+			vm->V[(vm->opcode & 0x0F00) >> 8] = i;
+			key_pressed = true;
 		}
 	}
 
-	// If we didn't received a keypress, skip this cycle and try again.
-	if (!keyPress)
-	{
+	if (!key_pressed)
 		return;
-	}
 
-	VM->PC += 2;
+	vm->PC += 2;
 }
 
-// Fx15 - LD DT, Vx
-// Set delay timer = Vx
-void instructions::LD_F015(VM* VM)
+void instructions::LD_F015(VM* vm)
 {
-	VM->DT = VM->V[(VM->opcode & 0x0F00) >> 8];
-	VM->PC += 2;
+	vm->DT = vm->V[(vm->opcode & 0x0F00) >> 8];
+	vm->PC += 2;
 }
 
-// Fx18 - LD ST, Vx
-// Set sound timer = Vx
-void instructions::LD_F018(VM* VM)
+void instructions::LD_F018(VM* vm)
 {
-	VM->ST = VM->V[(VM->opcode & 0x0F00) >> 8];
-	VM->PC += 2;
+	vm->ST = vm->V[(vm->opcode & 0x0F00) >> 8];
+	vm->PC += 2;
 }
 
-// Fx1E - ADD I, Vx
-// Set I = I + Vx
-void instructions::ADD_F01E(VM* VM)
+void instructions::ADD_F01E(VM* vm)
 {
-	if (VM->I + VM->V[(VM->opcode & 0x0F00) >> 8] > 0xFFF)
+	vm->I += vm->V[(vm->opcode & 0x0F00) >> 8];
+	vm->PC += 2;
+}
+
+void instructions::LD_F029(VM* vm)
+{
+	vm->I = vm->V[(vm->opcode & 0x0F00) >> 8] * 0x5;
+	vm->PC += 2;
+}
+
+void instructions::LD_F033(VM* vm)
+{
+	vm->memory[vm->I] = vm->V[(vm->opcode & 0x0F00) >> 8] / 100;
+	vm->memory[vm->I + 1] = (vm->V[(vm->opcode & 0x0F00) >> 8] / 10) % 10;
+	vm->memory[vm->I + 2] = vm->V[(vm->opcode & 0x0F00) >> 8] % 10;
+	vm->PC += 2;
+}
+
+void instructions::LD_F055(VM* vm)
+{
+	for (int i = 0; i <= ((vm->opcode & 0x0F00) >> 8); ++i)
 	{
-		VM->V[0xF] = 1;
+		vm->memory[vm->I + i] = vm->V[i];
 	}
-	else
+	vm->PC += 2;
+}
+
+
+void instructions::LD_F065(VM* vm)
+{
+	for (int i = 0; i <= ((vm->opcode & 0x0F00) >> 8); ++i)
 	{
-		VM->V[0xF] = 0;
+		vm->V[i] = vm->memory[vm->I + i];
 	}
 
-	VM->I += VM->V[(VM->opcode & 0x0F00) >> 8];
-	VM->PC += 2;
-}
-
-// Fx29 - LD F, Vx
-//  Set I = location of sprite for digit Vx
-void instructions::LD_F029(VM* VM)
-{
-	VM->I = VM->V[(VM->opcode & 0x0F00) >> 8] * 0x5;
-	VM->PC += 2;
-}
-
-// Fx33 - LD B, Vx
-// Store BCD representation of Vx in memory locations I, I + 1, and I + 2
-void instructions::LD_F033(VM* VM)
-{
-	VM->memory[VM->I] = VM->V[(VM->opcode & 0x0F00) >> 8] / 100;
-	VM->memory[VM->I + 1] = (VM->V[(VM->opcode & 0x0F00) >> 8] / 10) % 10;
-	VM->memory[VM->I + 2] = (VM->V[(VM->opcode & 0x0F00) >> 8] % 100) % 10;
-	VM->PC += 2;
-}
-
-// Fx55 - LD[I], Vx
-// Store registers V0 through Vx in memory starting at location I
-void instructions::LD_F055(VM* VM)
-{
-	for (int i = 0; i <= ((VM->opcode & 0x0F00) >> 8); ++i)
-	{
-		VM->memory[VM->I + i] = VM->V[i];
-	}
-
-	VM->I += ((VM->opcode & 0x0F00) >> 8) + 1;
-	VM->PC += 2;
-}
-
-// Fx65 - LD Vx, [I]
-//	Read registers V0 through Vx from memory starting at location I.
-void instructions::LD_F065(VM* VM)
-{
-	for (int i = 0; i <= ((VM->opcode & 0x0F00) >> 8); i++)
-	{
-		VM->V[i] = VM->memory[VM->I + i];
-	}
-
-	VM->I += ((VM->opcode & 0x0F00) >> 8) + 1;
-	VM->PC += 2;
+	vm->PC += 2;
 }

@@ -107,6 +107,7 @@ void Config::WriteToConfig(const std::string& cfgFilePath)
 	cfgbuf.append("[General]\n");
 	cfgbuf.append("vsync=" + BoolToStr(pemu->b_Vsync) + "\n");
 	cfgbuf.append("clockspeed=" + std::to_string(pemu->clockspeed) + "\n");
+	cfgbuf.append("debug=" + BoolToStr(pemu->b_Debug) + "\n");
 
 	cfgbuf.append("[Controller]\n");
 	constexpr std::array<char, 16> ctable = {
