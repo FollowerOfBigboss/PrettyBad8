@@ -331,29 +331,23 @@ void instructions::RND_C000(VM* vm)
 
 void instructions::DRW_D000(VM* vm)
 {
-    short x = vm->V[(vm->opcode & 0x0F00) >> 8];
-    short y = vm->V[(vm->opcode & 0x00F0) >> 4];
-    short height = vm->opcode & 0x000F;
-    short sprite;
+	// Taken from vision8
 
-    vm->V[15] = 0;
-
-	for (short yLine = 0; yLine < height && (yLine + y) < 32; yLine++)
-    {
-        sprite = vm->memory[vm->I + yLine];
-        for (short xLine = 0; xLine < 8; xLine++)
-        {
-            if (((sprite >> (7 - xLine)) & 1) == 1)
-            {
-                if (vm->gfx[(x + xLine) + ((y + yLine) * 64)] == 1)
-                {
-                    vm->V[15] = 1;
-                }
-                vm->gfx[(x + xLine) + ((y + yLine) * 64)] ^= 1;
-            }
-        }
-    }
-	
+	uint8_t* q;
+	uint8_t n, x, x2, y, collision;
+	uint16_t p;
+	x = vm->V[(vm->opcode & 0x0F00) >> 8] & 63;
+	y = vm->V[(vm->opcode & 0x00F0) >> 4] & 31;
+	p = vm->I;
+	q = vm->gfx + y * 64;
+	n = vm->opcode & 0x0f;
+	if (n + y > 32) n = 32 - y;
+	for (collision = 1; n; --n, q += 64)
+	{
+		for (y = vm->memory[p++], x2 = x; y; y <<= 1, x2 = (x2 + 1) & 63)
+			if (y & 0x80) collision &= (q[x2] ^= 0xff);
+	}
+	vm->V[15] = collision ^ 1;
 	vm->PC += 2;
 }
 
