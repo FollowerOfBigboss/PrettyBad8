@@ -345,7 +345,7 @@ void instructions::DRW_D000(VM* vm)
 	for (collision = 1; n; --n, q += 64)
 	{
 		for (y = vm->memory[p++], x2 = x; y; y <<= 1, x2 = (x2 + 1) & 63)
-			if (y & 0x80) collision &= (q[x2] ^= 0xff);
+			if (y & 0x80) collision &= (q[x2] ^= 1);
 	}
 	vm->V[15] = collision ^ 1;
 	vm->PC += 2;

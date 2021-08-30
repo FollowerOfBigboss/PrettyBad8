@@ -114,6 +114,7 @@ void Emu::DrawSettingsWindow(bool* open)
 				clockspeed = 500;
 			}
 
+			ImGui::Checkbox("Show FPS", &b_ShowFPS);
 #	ifdef PDEBUG
 			ImGui::Checkbox("Debug", &b_Debug);
 #	endif
@@ -123,29 +124,48 @@ void Emu::DrawSettingsWindow(bool* open)
 
 		if (ImGui::BeginTabItem("Controls"))
 		{
-			std::array<std::string, 3> strarr = { "No Input", "Keyboard", "No Controller Connected" };
-			if (glfwJoystickPresent(GLFW_JOYSTICK_1) == GLFW_TRUE)
-			{
-				const char* joystickptr = glfwGetJoystickName(GLFW_JOYSTICK_1);
-				strarr[2] = joystickptr;
-			}
-		
-			const char* combo_label = strarr[CurrentInput].c_str();
-
 			ImGui::Text("Default Input Device");
-			if (ImGui::BeginCombo("##ControllerBox", strarr[CurrentInput].c_str()))
-			{
-				for (int n = 0; n < strarr.size(); n++)
-				{
-					const bool is_selected = (CurrentInput == n);
-					if (ImGui::Selectable(strarr[n].c_str(), is_selected))
-						CurrentInput = n;
+		
+			std::string str;
+			int joystickconnected = glfwJoystickPresent(GLFW_JOYSTICK_1);
+			const char* joystickname = nullptr;
 
-					if (is_selected)
-						ImGui::SetItemDefaultFocus();
+			if (joystickconnected == GLFW_TRUE) {
+				joystickname = glfwGetJoystickName(GLFW_JOYSTICK_1);
+			}
+
+			switch (CurrentInput)
+			{
+				case EmuInput::NoInput:	str.assign("No Input");	 break;
+				case EmuInput::Keyboard: str.assign("Keyboard"); break;
+				case EmuInput::Controller: if (joystickconnected == GLFW_TRUE) str.assign(joystickname); break;
+			}
+
+
+			if (ImGui::BeginCombo("##ControllerBox", str.c_str()))
+			{
+				if (ImGui::Selectable("No Input"))
+				{
+					CurrentInput = EmuInput::NoInput;
+					
+				}
+
+				if (ImGui::Selectable("Keyboard"))
+				{
+					CurrentInput = EmuInput::Keyboard;
+				}
+
+				if (joystickconnected == GLFW_TRUE)
+				{
+					if (ImGui::Selectable(joystickname))
+					{
+						CurrentInput = EmuInput::Controller;
+					}
 				}
 				ImGui::EndCombo();
 			}
+
+
 
 			if (CurrentInput == EmuInput::Keyboard)
 			{
@@ -291,6 +311,7 @@ void Emu::InitDefaultValues()
 	b_DrawFile = false;
 	b_ShowSettings = false;
 	b_Vsync = true;
+	b_ShowFPS = false;
 
 	pmode.pressed = true;
 	pcont.pressed = true;
@@ -451,7 +472,7 @@ void Emu::handlecontroller()
 	int buttoncount;
 	const unsigned char* buttonptr = glfwGetJoystickButtons(GLFW_JOYSTICK_1, &buttoncount);
 
-	for (int i = 0; i < 16; i++)
+	for (int i = 0; i < buttoncount; i++)
 	{
 		if (buttonptr[i] == 1 && pcont.pressed == false)
 		{
@@ -468,7 +489,7 @@ void Emu::handlecontroller()
 	{
 		if (buttonptr[i] == 1)
 		{
-			for (int a = 0; a < 16; a++)
+			for (int a = 0; a < buttoncount; a++)
 			{
 				if (contmap[a].key == i)
 				{

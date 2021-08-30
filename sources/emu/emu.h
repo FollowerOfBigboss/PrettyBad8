@@ -68,7 +68,7 @@ public:
 	// VM class
 	VM vm;
 
-
+	bool b_ShowFPS;
 	// Representative variable for vm clock speed
 	int clockspeed;
 

@@ -108,6 +108,7 @@ void Config::WriteToConfig(const std::string& cfgFilePath)
 	cfgbuf.append("vsync=" + BoolToStr(pemu->b_Vsync) + "\n");
 	cfgbuf.append("clockspeed=" + std::to_string(pemu->clockspeed) + "\n");
 	cfgbuf.append("debug=" + BoolToStr(pemu->b_Debug) + "\n");
+	cfgbuf.append("ShowFPS=" + BoolToStr(pemu->b_ShowFPS) + "\n");
 
 	cfgbuf.append("[Controller]\n");
 	constexpr std::array<char, 16> ctable = {
@@ -173,6 +174,11 @@ void GeneralParse(Config& cfg, const std::string& str)
 	if (p1 == "debug")
 	{
 		cfg.pemu->b_Debug = StrToBool(p2);
+	}
+
+	if (p1 == "ShowFPS")
+	{
+		cfg.pemu->b_ShowFPS = StrToBool(p2);
 	}
 }
 
