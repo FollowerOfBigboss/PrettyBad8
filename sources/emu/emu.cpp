@@ -6,6 +6,72 @@
 #include "emu.h"
 #include <GLFW/glfw3.h>
 
+
+void CostumColorPicker(const std::string& str, ImVec4& color)
+{
+	int compcounter = 0;
+	int size = 0;
+	std::string idcounter;
+
+	ImGui::Text(str.c_str());
+	ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.10f);
+
+	size = snprintf(NULL, 0, "##%s_drgflt%i_", str.c_str(), compcounter);
+	idcounter.resize(size);
+	snprintf(&idcounter[0], idcounter.size(), "##%s_drgflt%i_", str.c_str(), compcounter);
+	compcounter++;
+
+	ImGui::DragFloat(idcounter.c_str(), &color.x, 0, 0.0f, 1.0f);
+	ImGui::SameLine();
+
+	idcounter.clear();
+	size = snprintf(NULL, 0, "##%s_drgflt%i_", str.c_str(), compcounter);
+	idcounter.resize(size);
+	snprintf(&idcounter[0], idcounter.size(), "##%s_drgflt%i_", str.c_str(), compcounter);
+	compcounter++;
+
+	ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.10f);
+	ImGui::DragFloat(idcounter.c_str(), &color.y, 0, 0.0f, 1.0f);
+	ImGui::SameLine(0);
+
+	idcounter.clear();
+	size = snprintf(NULL, 0, "##%s_drgflt%i_", str.c_str(), compcounter);
+	idcounter.resize(size);
+	snprintf(&idcounter[0], idcounter.size(), "##%s_drgflt%i_", str.c_str(), compcounter);
+	compcounter++;
+
+	ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.10f);
+	ImGui::DragFloat(idcounter.c_str(), &color.z, 0, 0.0f, 1.0f);
+
+	ImGui::SameLine();
+
+	idcounter.clear();
+	size = snprintf(NULL, 0, "##%s_btn%i_", str.c_str(), compcounter);
+	idcounter.resize(size);
+	snprintf(&idcounter[0], idcounter.size(), "##%s_btn%i_", str.c_str(), compcounter);
+	compcounter++;
+
+	bool open_popup = ImGui::ColorButton(idcounter.c_str(), color, 0);
+
+	idcounter.clear();
+	size = snprintf(NULL, 0, "##%s_pckr%i_", str.c_str(), compcounter);
+	idcounter.resize(size);
+	snprintf(&idcounter[0], idcounter.size(), "##%s_pckr%i_", str.c_str(), compcounter);
+	compcounter++;
+
+	if (open_popup)
+	{
+		ImGui::OpenPopup(str.c_str());
+	}
+
+	if (ImGui::BeginPopup(str.c_str()))
+	{
+		ImGui::ColorPicker4(idcounter.c_str(), (float*)&color,  ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_Float);
+		ImGui::EndPopup();
+	}
+
+}
+
 void Emu::init()
 {
 	InitDefaultValues();
@@ -118,6 +184,10 @@ void Emu::DrawSettingsWindow(bool* open)
 #	ifdef PDEBUG
 			ImGui::Checkbox("Debug", &b_Debug);
 #	endif
+
+
+			CostumColorPicker("Clear Color", ClearColor);
+			CostumColorPicker("White Color", WhiteColor);
 
 			ImGui::EndTabItem();
 		}
@@ -352,6 +422,10 @@ void Emu::InitDefaultValues()
 
 	pmode.keytochanged = -1;
 	pmode.pressed = true;
+
+	WhiteColor.x = 1.0f;
+	WhiteColor.y = 1.0f;
+	WhiteColor.z = 1.0f;
 }
 
 void Emu::EmuLoop()
@@ -382,7 +456,7 @@ void Emu::run()
 	}
 
 	EmuLoop();
-	gquads.update(vm);
+	gquads.update(vm, WhiteColor);
 }
 
 void Emu::SaveState()

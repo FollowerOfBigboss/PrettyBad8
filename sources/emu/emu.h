@@ -81,6 +81,8 @@ public:
 	// This struct used for input mapping in controllers
 	PressMode pcont;
 
+	ImVec4 ClearColor;
+	ImVec4 WhiteColor;
 
 	void init();
 	void run();

@@ -10,6 +10,7 @@
 #include <glm/gtx/io.hpp>
 
 #include <GLAD/glad.h>
+#include "imgui/imgui.h"
 #include "../vm/vm.h"
 
 
@@ -17,7 +18,7 @@ class CRenderQuads
 {
 public:
     void init();
-    void update(VM& vm);
+    void update(VM& vm, const ImVec4& color);
 
 private:
     GLuint vshader;
@@ -32,12 +33,14 @@ private:
 
     const char* fsh = "#version 330 core\n"
         "out vec4 FragColor;\n"
-        "void main() { FragColor = vec4(1.0f, 1.0f, 1.0f, 1.0f); }\0";
+        "uniform vec3 WhiteColor;\n"
+        "void main() { FragColor = vec4(WhiteColor.x, WhiteColor.y, WhiteColor.z, 1.0f); }\0";
 
     GLuint VBO, VAO, EBO;
     GLuint gprogram;
     GLint xloc;
     GLint yloc;
+    GLint WhiteLoc;
     glm::mat4 proj;
     
     GLfloat vertices[12] = {

@@ -57,7 +57,7 @@ int main()
 
     while (!glfwWindowShouldClose(window) && g_Emu.b_EmuRun == true)
     {
-        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+        glClearColor(g_Emu.ClearColor.x, g_Emu.ClearColor.y, g_Emu.ClearColor.z, 0.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
         ImGuiBeginFrame();

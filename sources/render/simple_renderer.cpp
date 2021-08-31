@@ -40,13 +40,15 @@ void CRenderQuads::init()
     GLint uniloc = glGetUniformLocation(gprogram, "projection");
     xloc = glGetUniformLocation(gprogram, "xloc");
     yloc = glGetUniformLocation(gprogram, "yloc");
+    WhiteLoc = glGetUniformLocation(gprogram, "WhiteColor");
 
     proj = glm::ortho(0.0f, 64.0f, 32.0f, 0.0f);
     glUniformMatrix4fv(uniloc, 1, GL_FALSE, glm::value_ptr(proj));
 }
 
-void CRenderQuads::update(VM& vm)
+void CRenderQuads::update(VM& vm, const ImVec4& color)
 {
+    glUniform3fv(WhiteLoc, 1, &color.x);
     int xsize = 0, ysize = 0;
     for (int j = 0; j < 32; j++)
     {
