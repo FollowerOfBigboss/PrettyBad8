@@ -180,6 +180,11 @@ void GeneralParse(Config& cfg, const std::string& str)
 	{
 		cfg.pemu->b_ShowFPS = StrToBool(p2);
 	}
+
+	if (p1 == "compression")
+	{
+		cfg.pemu->useCompression = StrToBool(p2);
+	}
 }
 
 void ControllerParse(Config& cfg, const std::string& str)

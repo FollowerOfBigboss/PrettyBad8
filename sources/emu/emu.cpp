@@ -5,7 +5,7 @@
 
 #include "emu.h"
 #include <GLFW/glfw3.h>
-
+#include <zlib/zlib.h>
 
 void CostumColorPicker(const std::string& str, ImVec4& color)
 {
@@ -184,6 +184,7 @@ void Emu::DrawSettingsWindow(bool* open)
 #	ifdef PDEBUG
 			ImGui::Checkbox("Debug", &b_Debug);
 #	endif
+			ImGui::Checkbox("Use Compression", &useCompression);
 
 
 			CostumColorPicker("Clear Color", ClearColor);
@@ -386,6 +387,8 @@ void Emu::InitDefaultValues()
 	pmode.pressed = true;
 	pcont.pressed = true;
 
+	useCompression = 0;
+
 	clockspeed = 500;
 	CurrentInput = EmuInput::Keyboard;
 	gquads.init();
@@ -462,59 +465,144 @@ void Emu::run()
 void Emu::SaveState()
 {
 	FILE* fs = fopen("ch8state.st", "wb");
-	Sstate state;
-	state.magic = 0x74733863;
+	FileHeader hdr;
+	hdr.magic = 0x74733863;
 
-	for (int i = 0; i < 16; i++)
+	if (useCompression == true)
 	{
-		state.V[i] = vm.V[i];
-		state.Key[i] = vm.Key[i];
-		state.stack[i] = vm.stack[i];
+		hdr.compression = 1;
+		SstateData sd;
+		constexpr int chunksize = sizeof(SstateData);
+		memcpy(sd.V, vm.V, 16);
+		memcpy(sd.Key, vm.Key, 16);
+		memcpy(sd.stack, vm.stack, 16 * 2);
+		sd.I = vm.I;
+		sd.ST = vm.ST;
+		sd.DT = vm.DT;
+		sd.PC = vm.PC;
+		sd.SP = vm.SP;
+		memcpy(sd.gfx, vm.gfx, 2048);
+		
+		uint8_t* chunkout = new uint8_t[chunksize];
+		unsigned long destout;
+
+		uint8_t* chunk = new uint8_t[chunksize];
+
+		memcpy(chunk, &sd, chunksize);
+		compress(chunkout, &destout, chunk, chunksize);
+
+		uint8_t* newchunk = new uint8_t[destout];
+		memcpy(newchunk, chunkout, destout);
+
+		delete[] chunkout;
+		delete[] chunk;
+
+
+		hdr.bufsize = destout;
+		fwrite(&hdr, sizeof(FileHeader), 1, fs);
+		fwrite(newchunk, 1, destout, fs);
+		delete[] newchunk;
+		printf("Raw chunk size %i\nCompressed chunk size %i\n", chunksize, destout);
+	
 	}
 
-	state.I = vm.I;
-	state.ST = vm.ST;
-	state.DT = vm.DT;
-	state.PC = vm.PC;
-	state.SP = vm.SP;
-	memcpy(state.gfx, vm.gfx, sizeof(state.gfx));
+	else
+	{
+		hdr.compression = 0;
+		hdr.bufsize = sizeof(SstateData);
+		fwrite(&hdr, sizeof(FileHeader), 1, fs);
 
-	fwrite(&state, sizeof(state), 1, fs);
+		SstateData state;
+		for (int i = 0; i < 16; i++)
+		{
+			state.V[i] = vm.V[i];
+			state.Key[i] = vm.Key[i];
+			state.stack[i] = vm.stack[i];
+		}
+		state.I = vm.I;
+		state.ST = vm.ST;
+		state.DT = vm.DT;
+		state.PC = vm.PC;
+		state.SP = vm.SP;
+		memcpy(state.gfx, vm.gfx, sizeof(state.gfx));
+		fwrite(&state, sizeof(state), 1, fs);
+	}
+
 	fclose(fs);
 }
 
 void Emu::LoadState()
 {
-	Sstate state;
+//		uint8_t* unc = (uint8_t*)malloc(chunksize);
+//		unsigned long dest;
+//		uncompress(unc, &dest, chunkout, chunksize);
+
 	FILE* fs = fopen("ch8state.st", "rb");
+	FileHeader hdr;
+	fread(&hdr, sizeof(FileHeader), 1, fs);
+
+	if (hdr.magic != 0x74733863)
+	{
+		printf("Magic didn't match\n");
+		return;
+	}
+
+	if (hdr.compression == 0)
+	{
+		printf("Sizeof %i\n", hdr.bufsize);
+		SstateData sd;
+		fread(&sd, sizeof(SstateData), 1, fs);
+		for (int i = 0; i < 16; i++)
+		{
+			vm.V[i] = sd.V[i];
+			vm.Key[i] = sd.Key[i];
+			vm.stack[i] = sd.stack[i];
+		}
+		
+		vm.I = sd.I;
+		vm.ST = sd.ST;
+		vm.DT = sd.DT;
+		vm.PC = sd.PC;
+		vm.SP = sd.SP;
+		memcpy(vm.gfx, sd.gfx, sizeof(sd.gfx));
+
+		fclose(fs);
+		return;
+	}
 	
-	if (fs == nullptr)
+	if (hdr.compression == 1)
 	{
-		printf("File load failed!\n");
+		printf("Sizeof %i\n", hdr.bufsize);
+
+		uint8_t* buffer = new uint8_t[hdr.bufsize];
+		fread(buffer, 1, hdr.bufsize, fs);
+
+		uint8_t* unc = new uint8_t[sizeof(SstateData)];
+		unsigned long dest;
+		uncompress(unc, &dest, buffer, hdr.bufsize);
+
+		SstateData sd;
+		memcpy(&sd, unc, sizeof(SstateData));
+		delete[] unc;
+		delete[] buffer;
+
+		for (int i = 0; i < 16; i++)
+		{
+			vm.V[i] = sd.V[i];
+			vm.Key[i] = sd.Key[i];
+			vm.stack[i] = sd.stack[i];
+		}
+
+		vm.I = sd.I;
+		vm.ST = sd.ST;
+		vm.DT = sd.DT;
+		vm.PC = sd.PC;
+		vm.SP = sd.SP;
+		memcpy(vm.gfx, sd.gfx, sizeof(sd.gfx));
+
+		fclose(fs);
 		return;
 	}
-
-	if (fread(&state, sizeof(state), 1, fs) != 1)
-	{
-		printf("File read failed!\n");
-		return;
-	}
-
-
-	for (int i = 0; i < 16; i++)
-	{
-		vm.V[i] = state.V[i];
-		vm.Key[i] = state.Key[i];
-		vm.stack[i] = state.stack[i];
-	}
-
-	vm.I = state.I;
-	vm.ST = state.ST;
-	vm.DT = state.DT;
-	vm.PC = state.PC;
-	vm.SP = state.SP;
-	memcpy(vm.gfx, state.gfx, sizeof(state.gfx));
-	fclose(fs);
 }
 
 void Emu::presskey(int key)

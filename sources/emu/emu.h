@@ -12,13 +12,22 @@
 
 #include "../config_parser/config_parser.h"
 
+// https://stackoverflow.com/questions/1537964/visual-c-equivalent-of-gccs-attribute-packed
+#ifdef __GNUC__
+#define PACK( __Declaration__ ) __Declaration__ __attribute__((__packed__))
+#endif
+
+#ifdef _MSC_VER
+#define PACK( __Declaration__ ) __pragma( pack(push, 1) ) __Declaration__ __pragma( pack(pop))
+#endif
+
+
 enum EmuInput : int
 {
 	NoInput = 0,
 	Keyboard,
 	Controller
 };
-
 
 struct controlmap
 {
@@ -32,20 +41,32 @@ struct PressMode
 	bool pressed;
 };
 
-struct Sstate
+PACK
+(
+struct SstateData
+{
+	uint8_t V[16]; // 16 bytes
+	uint16_t I; // 2 bytes
+	uint8_t ST; // 1 byte
+	uint8_t DT; // 1 byte
+	uint16_t PC; // 2 bytes
+	uint8_t SP; // 1 byte
+	uint8_t Key[16]; // 16 bytes
+	uint16_t stack[16]; // 32 bytes
+	uint8_t gfx[64 * 32]; // 2048 bytes
+}
+);
+
+PACK
+(
+struct FileHeader
 {
 	uint32_t magic;
-	// uint8_t compression; // Reserved for future use
-	uint8_t V[16];
-	uint16_t I;
-	uint8_t ST;
-	uint8_t DT;
-	uint16_t PC;
-	uint8_t SP;
-	uint8_t Key[16];
-	uint16_t stack[16];
-	uint8_t gfx[64 * 32];
-};
+	uint8_t compression;
+	uint32_t bufsize;
+}
+);
+
 
 class Emu
 {
@@ -53,7 +74,7 @@ public:
 	// Indicates emulator is running or not
 	bool b_EmuRun;
 
-
+	// Debug indicator
 	bool b_Debug;
 
 	// Indicates current input method
@@ -80,6 +101,9 @@ public:
 
 	// This struct used for input mapping in controllers
 	PressMode pcont;
+
+	// compression flag
+	bool useCompression;
 
 	ImVec4 ClearColor;
 	ImVec4 WhiteColor;
