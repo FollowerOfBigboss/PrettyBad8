@@ -478,7 +478,7 @@ void DebuggerUi::DrawKey(bool* open)
 
 	for (int i = 0; i < 16; i++)
 	{
-		ltoa(TemporaryKey[i], tmp, 10);
+		snprintf(tmp, 2, "%i", TemporaryKey[i]);
 
 		if (TemporaryKey[i] == 1)
 		{
