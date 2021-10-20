@@ -17,7 +17,6 @@ void JoystickInput();
 void ImGuiBeginFrame();
 void ImGuiEndFrame();
 void fpsoverlay();
-
 Emu g_Emu;
 
 int main()
