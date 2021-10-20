@@ -10,7 +10,7 @@
 
 extern class Emu;
 
-const struct EntryContainer
+struct EntryContainer
 {
 	std::string entryname;
 	void* pentryfn;
