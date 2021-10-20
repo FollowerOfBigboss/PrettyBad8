@@ -1,4 +1,5 @@
 #include "vm.h"
+#include <cstring>
 
 VM::VM()
 {
