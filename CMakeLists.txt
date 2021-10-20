@@ -99,6 +99,7 @@ add_library(Dear_ImGui
  	    3rdparty/imgui/dirent/dirent.h			
 )
 
+target_compile_definitions(Dear_ImGui PRIVATE -DIMGUI_IMPL_OPENGL_LOADER_GLAD)
 
 
 add_library(zlib
