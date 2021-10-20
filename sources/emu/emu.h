@@ -4,8 +4,10 @@
 #include <array>
 
 #include <GLAD/glad.h>
-#include "imgui/imgui.h"
-#include "imgui/ImGuiFileDialog.h"
+#include <GLFW/glfw3.h>
+
+#include <imgui/imgui.h>
+#include <imgui/ImGuiFileDialog.h>
 
 #include "../vm/debugger.h"
 #include "../emu/debugger_ui.h"

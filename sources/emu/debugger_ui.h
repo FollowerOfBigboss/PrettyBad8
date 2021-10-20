@@ -2,7 +2,9 @@
 #define DBGUI
 
 #include <GLAD/glad.h>
-#include "imgui/imgui.h"
+#include <GLFW/glfw3.h>
+
+#include <imgui/imgui.h>
 #include "../vm/debugger.h"
 
 struct InstructionInfo

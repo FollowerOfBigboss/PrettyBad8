@@ -10,7 +10,9 @@
 #include <glm/gtx/io.hpp>
 
 #include <GLAD/glad.h>
-#include "imgui/imgui.h"
+#include <GLFW/glfw3.h>
+
+#include <imgui/imgui.h>
 #include "../vm/vm.h"
 
 
