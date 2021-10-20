@@ -47,8 +47,8 @@ void Config::ParseConfig()
 
 	const std::array<EntryContainer, 2> EC
 	{
-		EntryContainer{"General", &GeneralParse},
-		EntryContainer{"Controller", &ControllerParse}
+		EntryContainer{"General", (void*)&GeneralParse},
+		EntryContainer{"Controller", (void*)&ControllerParse}
 	};
 
 	for (auto i : strvec)
