@@ -1,4 +1,5 @@
 #include "debugger_ui.h"
+#include <stdlib.h>
 
 
 DebuggerUi::DebuggerUi()
