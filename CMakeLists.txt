@@ -100,7 +100,7 @@ add_library(Dear_ImGui
 )
 
 target_compile_definitions(Dear_ImGui PRIVATE -DIMGUI_IMPL_OPENGL_LOADER_GLAD)
-
+target_include_directories(Dear_ImGui PRIVATE 3rdparty)
 
 add_library(zlib
 	    3rdparty/zlib/crc32.h
