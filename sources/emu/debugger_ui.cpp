@@ -208,7 +208,7 @@ void DebuggerUi::DrawBreakPointList()
 				ImGui::TableNextColumn();
 
 				char littlebuf[5] = { 0 };
-				ltoa(debugger->BreakpointList[i], littlebuf, 10);
+				snprintf(littlebuf, 5, "%i", debugger->BreakpointList[i]);
 				ImGui::Selectable(littlebuf);
 
 			}
@@ -432,7 +432,7 @@ void DebuggerUi::DrawGraphicsDebugger(bool* open)
 	{
 		for (int j = 0; j < 64; j++)
 		{
-			ltoa(debugger->vm->gfx[i + j], stmp, 10);
+			snprintf(stmp, 5, "%i", debugger->vm->gfx[i + j]);
 			tmp += stmp;
 		}
 		tmp += "\n";
