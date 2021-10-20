@@ -70,9 +70,9 @@ add_executable(EmuPBad8
 )
 
 add_library(GLAD
-	    3rdparty/GLAD/khrplatform.h
-	    3rdparty/GLAD/glad.h 
-	    3rdparty/GLAD/glad.c
+	    3rdparty/glad/khrplatform.h
+	    3rdparty/glad/glad.h 
+	    3rdparty/glad/glad.c
 )
 
 
