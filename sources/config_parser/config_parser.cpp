@@ -103,6 +103,13 @@ void Config::ParseConfig()
 void Config::WriteToConfig(const std::string& cfgFilePath)
 {
 	FILE* fs = fopen(cfgFilePath.c_str(), "wb");
+
+	if (fs == nullptr)
+	{
+		printf("Writing to config failed!\n");
+		return;
+	}
+
 	std::string cfgbuf;
 	cfgbuf.append("[General]\n");
 	cfgbuf.append("vsync=" + BoolToStr(pemu->b_Vsync) + "\n");
