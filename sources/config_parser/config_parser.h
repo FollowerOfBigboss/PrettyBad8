@@ -10,6 +10,14 @@
 
 class Emu;
 
+
+enum cfgerr : int
+{
+	unsuccessful = -1,
+	created_new = 0,
+	successful = 1,
+};
+
 struct EntryContainer
 {
 	std::string entryname;
@@ -22,9 +30,9 @@ struct Config
 	std::string buf;
 
 	void init(Emu& emu);
-	void OpenConfig(const std::string& cfgFilePath = "emu.cfg");
+	cfgerr OpenConfig(const std::string& cfgFilePath = "emu.cfg");
 	void ParseConfig();
-	void WriteToConfig(const std::string& cfgFilePath = "emu.cfg");
+	bool WriteToConfig(const std::string& cfgFilePath = "emu.cfg");
 };
 
 bool StrToBool(const std::string& str);

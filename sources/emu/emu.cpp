@@ -322,7 +322,7 @@ void Emu::DrawSettingsWindow(bool* open)
 		
 		if (ImGui::Button("Apply", ImVec2(100, 30)))
 		{
-			cfg.WriteToConfig();
+			cfg.WriteToConfig("emu.cfg");
 		}
 
 		ImGui::EndTabBar();
@@ -666,29 +666,20 @@ void Emu::handlecontroller()
 void Emu::loadconfig()
 {
 
-	FILE* fs = fopen("emu.cfg", "rb");
+	cfg.init(*this);
+	cfgerr ecfg = cfg.OpenConfig("emu.cfg");
 
-	if (fs == nullptr)
+	// Loading emulator config failed most likely due to config is not exist
+	if (ecfg == cfgerr::unsuccessful)
 	{
-		printf("File load failed!\n");
+		printf("Loading emulator config failed!\n");
 		return;
 	}
 
-	long fsize;
-	fseek(fs, 0, SEEK_END);
-	fsize = ftell(fs);
-	rewind(fs);
-	char* mem = (char*)malloc(fsize+1);
-	fread(mem, 1, fsize, fs);
-	mem[fsize] = '\0';
-	std::string buf = mem;
-	buf.erase(std::remove(buf.begin(), buf.end(), '\r'), buf.end());
-	fclose(fs);
-	free(mem);
-
-	cfg.init(*this);
-	cfg.OpenConfig();
-	cfg.ParseConfig();
+	if (ecfg == cfgerr::successful)
+	{
+		cfg.ParseConfig();
+	}
 }
 
 

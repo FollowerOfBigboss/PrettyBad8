@@ -6,21 +6,39 @@ void Config::init(Emu& emu)
 	pemu = &emu;
 }
 
-void Config::OpenConfig(const std::string& cfgFilePath)
+cfgerr Config::OpenConfig(const std::string& cfgFilePath)
 {
 
 	FILE* fs = fopen(cfgFilePath.c_str(), "rb");
+	if (fs == nullptr)
+	{
+//		printf("Opening config file failed! Most likely it is not exist\n");
+		// try to create config file
+		if (this->WriteToConfig(cfgFilePath) != true)
+		{
+//			printf("Creating new config file failed!");
+			return cfgerr::unsuccessful;
+		}
+//		printf("Creating new config successfull\n");
+		return cfgerr::created_new;
+	}
+
 	fseek(fs, 0, SEEK_END);
 	long fsize = ftell(fs);
 	rewind(fs);
 
 	char* mem = new char[fsize + 1];
-	fread(mem, 1, fsize, fs);
-	mem[fsize] = '\0';
-	buf = mem;
-	buf.erase(std::remove(buf.begin(), buf.end(), '\r'), buf.end());
+	if (mem != nullptr)
+	{
+		fread(mem, 1, fsize, fs);
+		mem[fsize] = '\0';
+		buf = mem;
+		buf.erase(std::remove(buf.begin(), buf.end(), '\r'), buf.end());
+		delete[] mem;
+	}
+
 	fclose(fs);
-	delete[] mem;
+	return cfgerr::successful;
 
 }
 
@@ -100,14 +118,14 @@ void Config::ParseConfig()
 
 }
 
-void Config::WriteToConfig(const std::string& cfgFilePath)
+bool Config::WriteToConfig(const std::string& cfgFilePath)
 {
 	FILE* fs = fopen(cfgFilePath.c_str(), "wb");
 
 	if (fs == nullptr)
 	{
 		printf("Writing to config failed!\n");
-		return;
+		return false;
 	}
 
 	std::string cfgbuf;
@@ -140,8 +158,15 @@ void Config::WriteToConfig(const std::string& cfgFilePath)
 	}
 
 
-	fwrite(cfgbuf.c_str(), 1, cfgbuf.size(), fs);
+	int WrittenBytes = fwrite(cfgbuf.c_str(), 1, cfgbuf.size(), fs);
 	fclose(fs);
+
+	if (WrittenBytes != cfgbuf.size())
+	{
+		return false;
+	}
+
+	return true;
 }
 
 bool StrToBool(const std::string& str)
