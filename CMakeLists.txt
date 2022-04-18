@@ -24,6 +24,8 @@ file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/imgui/backends/imgui_impl_opengl3
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/imgui/backends/imgui_impl_opengl3.h 
 	 DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/imgui )
 
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/imgui/backends/imgui_impl_opengl3_loader.h
+	 DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/imgui )
 
 
 # ImGuiFileDialog
@@ -62,11 +64,11 @@ add_executable(EmuPBad8
 	       sources/vm/debugger.h
 	       sources/vm/debugger.cpp
 		   
-		   sources/config_parser/config_parser.h
-		   sources/config_parser/config_parser.cpp
-		   
-		   sources/dynarec/dynarec.h
-		   sources/dynarec/dynarec.cpp
+	       sources/config_parser/config_parser.h
+	       sources/config_parser/config_parser.cpp
+	
+	       sources/dynarec/dynarec.h
+	       sources/dynarec/dynarec.cpp
 )
 
 add_library(GLAD
@@ -114,21 +116,21 @@ add_library(zlib
 	    3rdparty/zlib/zconf.h
 	    3rdparty/zlib/zlib.h
 	    3rdparty/zlib/zutil.h
-		3rdparty/zlib/adler32.c
-		3rdparty/zlib/compress.c
-		3rdparty/zlib/crc32.c
-		3rdparty/zlib/deflate.c
-		3rdparty/zlib/gzclose.c
-		3rdparty/zlib/gzlib.c
-		3rdparty/zlib/gzread.c
-		3rdparty/zlib/gzwrite.c
-		3rdparty/zlib/infback.c
-		3rdparty/zlib/inffast.c
-		3rdparty/zlib/inflate.c
-		3rdparty/zlib/inftrees.c
-		3rdparty/zlib/trees.c
-		3rdparty/zlib/uncompr.c
-		3rdparty/zlib/zutil.c
+	    3rdparty/zlib/adler32.c
+	    3rdparty/zlib/compress.c
+	    3rdparty/zlib/crc32.c
+	    3rdparty/zlib/deflate.c
+	    3rdparty/zlib/gzclose.c
+	    3rdparty/zlib/gzlib.c
+	    3rdparty/zlib/gzread.c
+	    3rdparty/zlib/gzwrite.c
+	    3rdparty/zlib/infback.c
+	    3rdparty/zlib/inffast.c
+	    3rdparty/zlib/inflate.c
+	    3rdparty/zlib/inftrees.c
+	    3rdparty/zlib/trees.c
+	    3rdparty/zlib/uncompr.c
+	    3rdparty/zlib/zutil.c
 )
 
 # Replace #include <imgui.h> with #include "imgui.h"

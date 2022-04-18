@@ -66,7 +66,7 @@ void CostumColorPicker(const std::string& str, ImVec4& color)
 
 	if (ImGui::BeginPopup(str.c_str()))
 	{
-		ImGui::ColorPicker4(idcounter.c_str(), (float*)&color,  ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_Float);
+		ImGui::ColorPicker4(idcounter.c_str(), (float*)&color,  ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_DisplayRGB | ImGuiColorEditFlags_Float);
 		ImGui::EndPopup();
 	}
 
@@ -335,13 +335,21 @@ void Emu::DrawOtherWindows()
 {
 	if (b_DrawFile)
 	{
-		ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Choose File", ".*", ".");
+		ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Choose File", ".*,.ch8", ".");
 
 		if (ImGuiFileDialog::Instance()->Display("ChooseFileDlgKey"))
 		{
 			if (ImGuiFileDialog::Instance()->IsOk())
 			{
+
+				/* Api is broken and i have no intention to fix it so i'll hack it!
 				std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+				*/
+				std::string filePathName;
+				auto m = ImGuiFileDialog::Instance()->GetSelection();
+				for (const auto& n : m) {
+					filePathName = n.second;
+				}
 
 				vm.init();
 				vm.loadrom(filePathName);
