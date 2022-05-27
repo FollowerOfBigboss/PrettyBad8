@@ -24,10 +24,6 @@ file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/imgui/backends/imgui_impl_opengl3
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/imgui/backends/imgui_impl_opengl3.h 
 	 DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/imgui )
 
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/imgui/backends/imgui_impl_opengl3_loader.h
-	 DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/imgui )
-
-
 # ImGuiFileDialog
 
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/ImGuiFileDialog/ImGuiFileDialog.cpp
