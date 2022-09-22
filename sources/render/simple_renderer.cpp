@@ -48,6 +48,7 @@ void CRenderQuads::init()
 
 void CRenderQuads::update(VM& vm, const ImVec4& color)
 {
+    glUseProgram(gprogram);
     glUniform3fv(WhiteLoc, 1, &color.x);
     int xsize = 0, ysize = 0;
     for (int j = 0; j < 32; j++)
@@ -55,7 +56,6 @@ void CRenderQuads::update(VM& vm, const ImVec4& color)
         xsize = 0;
         for (int i = 0; i < 64; i++)
         {
-            glUseProgram(gprogram);
             glUniform1i(xloc, xsize);
             glUniform1i(yloc, ysize);
 
